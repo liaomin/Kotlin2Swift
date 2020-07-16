@@ -4,6 +4,8 @@ import com.liam.ast.psi.Node
 import com.liam.ast.writer.LanguageWriter
 import com.liam.ast.writer.Statement
 import com.liam.ast.writer.SwiftHandler
+import org.jetbrains.kotlin.psi.KtProperty
+import org.jetbrains.kotlin.resolve.calls.callUtil.getType
 
 /**
  * @author liaomin
@@ -23,12 +25,16 @@ open class PropertyHandler : SwiftHandler<Node.Decl.Property>(){
 
         node.vars?.forEach {
             it?.also {
-                it.parent = node
-                writer.onWriteNode(it,statement)
-                if(it.type == null && node.expr != null && node.expr is Node.Expr.Const){
+                writer.onWriteNode(it,statement,node)
+                if(it.type == null && node.expr != null && node.expr is Node.Expr.Const && node.expr.form == Node.Expr.Const.Form.INT){
                     val expr = node.expr
-                    if(expr.form == Node.Expr.Const.Form.INT && expr.value.endsWith("L")){
+                    val v = expr.value.toLowerCase()
+                    if(v.endsWith("ul")){
+                        statement.append(":UInt64")
+                    }else if(v.endsWith("l")){
                         statement.append(":Int64")
+                    }else if(v.endsWith("u")){
+                        statement.append(":UInt")
                     }
                 }
             }

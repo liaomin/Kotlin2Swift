@@ -33,6 +33,14 @@ open class PieceSimplePieceHandler : SwiftHandler<Node.TypeRef.Simple.Piece>() {
         val name = node.name
         when (name){
             "Long" -> statement.append("Int64")
+            "Byte" -> statement.append("Int8")
+            "Short" -> statement.append("Int16")
+            "ULong" -> statement.append("UInt64")
+            "UByte" -> statement.append("UInt8")
+            "UShort" -> statement.append("UInt16")
+            "UInt" -> statement.append("UInt32")
+            "Boolean" -> statement.append("Bool")
+            "Char" -> statement.append("Character")
             else -> statement.append("$name")
         }
     }

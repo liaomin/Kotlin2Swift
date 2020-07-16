@@ -1,4 +1,4 @@
-package com.liam.ast.writer.swift.decl
+package com.liam.ast.writer.swift.decl.func
 
 import com.liam.ast.psi.Node
 import com.liam.ast.writer.LanguageWriter
@@ -17,8 +17,9 @@ class FuncHandler : SwiftHandler<Node.Decl.Func>(){
     override fun onHandle(writer: LanguageWriter, node: Node.Decl.Func, statement: Statement) {
         if(node.receiverType != null){
             node.receiverType.parent = node
-            //TODO 扩展方法
+            error("not support")
         }
+        statement.nextLine()
         statement.append("func ${node.name}")
         if(node.typeParams.size > 0){
             statement.append("<")
@@ -31,23 +32,34 @@ class FuncHandler : SwiftHandler<Node.Decl.Func>(){
             statement.append(">")
         }
         statement.append("(")
+        node.params.forEachIndexed { index, param ->
+            if(index > 0){
+                statement.append(",")
+            }
+            statement.append("_ ")
+            writer.onWriteNode(param,statement,node)
+        }
         statement.append(")")
         node.type?.also {
             it.parent = node
             statement.append(" -> ")
             writer.onWriteNode(it,statement)
         }
-        statement.append(" { ")
-        statement.openQuote()
-        statement.nextLine()
+
 
         //TODO
-        node.body?.also { writer.onWriteNode(it,statement)  }
-
-        statement.closeQuote()
-        statement.nextLine()
-        statement.append("}")
-
+        node.body?.also {
+            val isExpr = it is Node.Decl.Func.Body.Expr
+            if(isExpr){
+                statement.append(" {")
+                statement.openQuote()
+            }
+            writer.onWriteNode(it,statement,node)
+            if(isExpr){
+                statement.closeQuote()
+                statement.append("}")
+            }
+        }
 
     }
 }

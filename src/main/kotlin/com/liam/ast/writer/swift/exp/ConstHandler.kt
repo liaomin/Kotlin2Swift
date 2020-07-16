@@ -20,12 +20,28 @@ open class ConstHandler : SwiftHandler<Node.Expr.Const>() {
         when(from){
             Node.Expr.Const.Form.NULL -> statement.append("nil")
             Node.Expr.Const.Form.INT -> {
-                var v = node.value
-                if(v.endsWith("L")){
+                var v = node.value.toLowerCase()
+                if(v.endsWith("ul")){
+                    statement.append(v.subSequence(0,v.length-2))
+                } else if(v.endsWith("l") || v.endsWith("u" )){
                     statement.append(v.subSequence(0,v.length-1))
                 }else{
                     statement.append(v)
                 }
+            }
+            Node.Expr.Const.Form.FLOAT -> {
+                var v = node.value
+                if(v.endsWith("f")){
+                    statement.append(v.subSequence(0,v.length-1))
+                }else{
+                    statement.append(v)
+                }
+            }
+            Node.Expr.Const.Form.CHAR -> {
+                statement.append("\"${node.value.subSequence(1,2)}\"")
+            }
+            else -> {
+                statement.append(node.value)
             }
         }
     }

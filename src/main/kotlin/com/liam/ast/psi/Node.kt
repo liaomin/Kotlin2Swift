@@ -1,7 +1,7 @@
 package com.liam.ast.psi
 
 import com.alibaba.fastjson.annotation.JSONField
-import org.jetbrains.kotlin.com.intellij.psi.PsiElement
+import com.intellij.psi.PsiElement
 
 /**
  * @author liaomin
@@ -11,7 +11,7 @@ import org.jetbrains.kotlin.com.intellij.psi.PsiElement
 sealed class Node {
     var tag: Any? = null
     @JSONField(serialize = false)
-    var element:PsiElement? = null
+    var element: PsiElement? = null
     var parent:Node? = null
 
     interface WithAnnotations {
@@ -307,10 +307,18 @@ sealed class Node {
                 val raw: Boolean
         ) : Expr() {
             sealed class Elem : Node() {
-                data class Regular(val str: String) : Elem()
-                data class ShortTmpl(val str: String) : Elem()
-                data class UnicodeEsc(val digits: String) : Elem()
-                data class RegularEsc(val char: Char) : Elem()
+                data class Regular(val str: String) : Elem(){
+                    override fun toString(): String = str
+                }
+                data class ShortTmpl(val str: String) : Elem(){
+                    override fun toString(): String = str
+                }
+                data class UnicodeEsc(val digits: String) : Elem(){
+                    override fun toString(): String = digits
+                }
+                data class RegularEsc(val char: Char) : Elem(){
+                    override fun toString(): String = char.toString()
+                }
                 data class LongTmpl(val expr: Expr) : Elem()
             }
         }

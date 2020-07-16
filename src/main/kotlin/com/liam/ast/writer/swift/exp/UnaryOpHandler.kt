@@ -24,11 +24,11 @@ open class UnaryOpHandler : SwiftHandler<Node.Expr.UnaryOp>() {
             if(toke == Node.Expr.UnaryOp.Token.INC || toke == Node.Expr.UnaryOp.Token.DEC){
                 val op = if(toke == Node.Expr.UnaryOp.Token.INC) "+" else "-"
                 if(node.prefix){
-                    statement.insertBeforeLine("$name $op= 1")
+//                    statement.insertBeforeLine("$name $op= 1")
                     statement.append(name)
                 }else{
                     statement.append(name)
-                    statement.appendBeforeNewLine("$name $op= 1")
+//                    statement.appendBeforeNewLine("$name $op= 1")
                 }
                 return
             }

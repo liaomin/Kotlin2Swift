@@ -8,7 +8,7 @@ import com.liam.uitls.PackageUtils
  * @date 6/19/20 2:04 下午
  * @version 1.0
  */
-open class SwiftWriter : BaseLanguageWriter {
+open class SwiftWriter<T> : BaseLanguageWriter {
 
     val imports = ArrayList<String>()
 
@@ -74,7 +74,7 @@ open class SwiftWriter : BaseLanguageWriter {
 
     override fun getLanguage(): Language = Language.SWIFT
 
-    companion object : SwiftWriter()
+    companion object : SwiftWriter<Any?>()
 
 
 

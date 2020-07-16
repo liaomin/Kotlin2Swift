@@ -45,6 +45,7 @@ abstract class ObjcHandler<T:Node>  : Handler<T> {
     override fun interrupt(node: T,statement:Statement): Boolean = false
 }
 
+fun notSupport(): Nothing = error("not support")
 
 class HandlerChain<T:Node> {
 

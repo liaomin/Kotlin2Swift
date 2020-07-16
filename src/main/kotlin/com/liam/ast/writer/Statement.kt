@@ -7,11 +7,9 @@ import java.lang.StringBuilder
  * @date 6/19/20 2:51 下午
  * @version 1.0
  */
-open class Statement {
+open class Statement() {
 
     val lines = ArrayList<Line>()
-
-    val beforeNewLine = ArrayList<Line>()
 
     var currentLine = Line()
 
@@ -19,34 +17,16 @@ open class Statement {
         lines.add(currentLine)
     }
 
-    var packageName:String? = null
-
     private var tabCount:Int = 0
 
+    fun newStatement():Statement = Statement()
+
     fun nextLine(){
-        beforeNewLine.forEach {
-            setPreFix(it)
-            lines.add(it)
-        }
-        beforeNewLine.clear()
         currentLine = Line()
         lines.add(currentLine)
         setPreFix(currentLine)
     }
 
-    fun next2Line(){
-        beforeNewLine.forEach {
-            setPreFix(it)
-            lines.add(it)
-        }
-        beforeNewLine.clear()
-        currentLine = Line()
-        lines.add(currentLine)
-        setPreFix(currentLine)
-        currentLine = Line()
-        lines.add(currentLine)
-        setPreFix(currentLine)
-    }
 
     fun setPreFix(line: Line){
         if(tabCount > 0 ){
@@ -65,8 +45,13 @@ open class Statement {
         return this
     }
 
-    fun appendBeforeNewLine(str:CharSequence):Statement{
-        beforeNewLine.add(Line.SingleLine(str))
+    fun append(statement: Statement):Statement{
+        statement.lines.forEachIndexed { index, line ->
+            append(line.toString())
+            if(index != statement.lines.size - 1){
+                nextLine()
+            }
+        }
         return this
     }
 
@@ -79,31 +64,23 @@ open class Statement {
         return lines.size
     }
 
-    fun insertLine(str: CharSequence,lineNum:Int){
-        if(lineNum<0 || lineNum>(lines.size-1)){
-            error("wrong $lineNum")
-        }
-        val l = Line.SingleLine(str)
-        setPreFix(l)
-        lines.add(lineNum, l)
-    }
-
-    fun insertBeforeLine(str: CharSequence){
-        insertLine(str,lines.size - 1)
-    }
-
     fun openQuote(){
         tabCount++
+        nextLine()
     }
 
     fun closeQuote(){
         tabCount--
+        nextLine()
     }
 
     override fun toString(): String {
         val builder = StringBuilder()
-        lines.forEach {
-            builder.append("${it.toString()} \n")
+        lines.forEachIndexed { index, line ->
+            builder.append(line.toString())
+            if(index != lines.size - 1){
+                builder.append("\n")
+            }
         }
         return builder.toString()
     }
@@ -128,13 +105,6 @@ open class Statement {
             }
             return builder.toString()
         }
-        class SingleLine(val str: CharSequence):Line(){
-            override fun toString(): String {
-                if(preFix != null){
-                    return "${preFix}$str"
-                }
-                return str.toString()
-            }
-        }
+
     }
 }

@@ -31,17 +31,17 @@ abstract class LanguageWriter{
             is Node.Decl.Func.Body.Expr -> defaultWriteNode(node, statement){
                 onWriteNode(node.expr,statement,node)
             }
-            is Node.Block -> defaultWriteNode(node,statement){
-                node.stmts.forEach {
-                    onWriteNode(it,statement,node)
-                    statement.nextLine()
-                }
-            }
             is Node.Stmt.Decl -> defaultWriteNode(node,statement){
                 onWriteNode(node.decl,statement,node)
             }
             is Node.Stmt.Expr -> defaultWriteNode(node,statement){
                 onWriteNode(node.expr,statement,node)
+            }
+            is Node.Expr.Brace -> defaultWriteNode(node, statement){
+                node.params.forEach {
+
+                }
+                node.block?.also {  onWriteNode(it,statement,node) }
             }
             else -> defaultWriteNode(node, statement)
         }

@@ -27,19 +27,14 @@ class ClassHandler {
                 }
                 statement.append("{")
                 statement.openQuote()
-                statement.next2Line()
 
                 node.members.forEach {
                     it.parent = node
                     writer.onWriteNode(it,statement)
                 }
-                //TODO
-
-
                 statement.closeQuote()
-                statement.nextLine()
                 statement.append("}")
-                statement.next2Line()
+                statement.nextLine()
             }
         }
     }
