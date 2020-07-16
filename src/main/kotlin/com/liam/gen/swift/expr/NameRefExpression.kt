@@ -1,14 +1,16 @@
 package com.liam.gen.swift.expr
 
-import com.liam.ast.writer.Statement
+import com.liam.gen.Statement
 import com.liam.gen.swift.CodeGen
 import com.liam.gen.swift.Handler
+import com.liam.gen.swift.scope.PsiResult
 import com.liam.gen.swift.scope.Scope
 import org.jetbrains.kotlin.psi.*
 
-open class NameRefExpression : Handler<KtNameReferenceExpression> {
+open class NameRefExpression : Handler<KtNameReferenceExpression>() {
 
-    override fun genCode(gen: CodeGen, v: KtNameReferenceExpression, statement: Statement, scope: Scope, targetType: String?, expectType: String?, shouldReturn: Boolean): String? {
+    override fun onGenCode(gen: CodeGen, v: KtNameReferenceExpression, scope: Scope, targetType: String?, expectType: String?, shouldReturn: Boolean): PsiResult {
+        val statement = Statement()
         val name =  v.getReferencedName()
         statement.append(name)
         val p = v.parent
@@ -16,14 +18,12 @@ open class NameRefExpression : Handler<KtNameReferenceExpression> {
             val argTypeList = ArrayList<String>()
             p.valueArgumentList?.arguments?.forEachIndexed { index, ktValueArgument ->
                 ktValueArgument.getArgumentExpression()?.let {
-                    val s = statement.newStatement()
-                    val t = gen.genExpr(it,s, scope,targetType, expectType, shouldReturn)
-                    argTypeList.add(t!!)
+                    argTypeList.add(gen.genExpr(it, scope,targetType, expectType, shouldReturn).returnType!!)
                 }
             }
-            return scope.getFuncType(name,argTypeList)
+            return PsiResult(statement,name,scope.getFuncType(name,argTypeList))
         }
-        return scope.getType(name,targetType)
+        return PsiResult(statement,name,scope.getType(name,targetType))
     }
 
     companion object:NameRefExpression()

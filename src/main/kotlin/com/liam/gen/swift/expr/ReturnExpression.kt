@@ -1,20 +1,28 @@
 package com.liam.gen.swift.expr
 
-import com.liam.ast.writer.Statement
+import com.liam.gen.Statement
 import com.liam.gen.swift.CodeGen
 import com.liam.gen.swift.Handler
+import com.liam.gen.swift.notSupport
+import com.liam.gen.swift.scope.PsiResult
 import com.liam.gen.swift.scope.Scope
 import org.jetbrains.kotlin.psi.*
 
-open class ReturnExpression : Handler<KtReturnExpression> {
+open class ReturnExpression : Handler<KtReturnExpression>() {
 
-    override fun genCode(gen: CodeGen, v: KtReturnExpression, statement: Statement, scope: Scope, targetType: String?, expectType: String?, shouldReturn: Boolean): String? {
+    override fun onGenCode(gen: CodeGen, v: KtReturnExpression, scope: Scope, targetType: String?, expectType: String?, shouldReturn: Boolean): PsiResult {
+        val statement = Statement()
         val l = v.getLabelName() //return where
+        if(l != null){
+            notSupport()
+        }
         v.returnedExpression?.let {
             statement.append("return ")
-            return gen.genExpr(it,statement,scope,targetType, expectType, shouldReturn)
+            val r = gen.genExpr(it,scope,targetType, expectType, shouldReturn)
+            statement.append(r)
+            PsiResult(statement,null,r.returnType)
         }
-        return null
+        return PsiResult(statement,null,null)
     }
 
     companion object:ReturnExpression()

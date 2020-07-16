@@ -1,17 +1,20 @@
 package com.liam.gen.swift.property
 
-import com.liam.ast.writer.Statement
+import com.liam.gen.Statement
 import com.liam.gen.swift.CodeGen
 import com.liam.gen.swift.Handler
 import com.liam.gen.swift.scope.Scope
 import com.liam.gen.swift.TypeUtils
+import com.liam.gen.swift.scope.PsiResult
 import org.jetbrains.kotlin.psi.KtProperty
 
-open class Property: Handler<KtProperty> {
+open class Property: Handler<KtProperty>() {
 
-    override fun genCode(gen: CodeGen, property: KtProperty, statement: Statement, scope: Scope, targetType: String?, expectType: String?, shouldReturn: Boolean): String? {
+    override fun onGenCode(gen: CodeGen, v: KtProperty, scope: Scope, targetType: String?, expectType: String?, shouldReturn: Boolean): PsiResult {
+        val statement = Statement()
+        val property = v
         property.modifierList?.also {
-            gen.genModifiers(it,property,statement,scope)
+            gen.genModifiers(it,property,scope)
         }
         if(property.isVar){
             statement.append("var ")
@@ -22,11 +25,12 @@ open class Property: Handler<KtProperty> {
         statement.append("$name")
         var type = TypeUtils.getType(property.typeReference)
 
-        val exprStatement = Statement()
+        var exprStatement:Statement? = null
         property.delegateExpressionOrInitializer?.let {
-            val t = gen.genExpr(it,exprStatement,scope,null,type,true)
+            val t = gen.genExpr(it,scope,null,type,true)
+            exprStatement = t.statement
             if(type == null){
-                type = t
+                type = t.returnType
             }
         }
         if(type != null){
@@ -37,10 +41,9 @@ open class Property: Handler<KtProperty> {
 
         statement.nextLine()
         scope.setVariable(name,type)
-        return type
+        return PsiResult(statement,name,type)
     }
 
     companion object:Property()
-
 
 }

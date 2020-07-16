@@ -1,13 +1,16 @@
-package com.liam.ast.writer
+package com.liam.gen
 
+import com.liam.gen.swift.scope.PsiResult
 import java.lang.StringBuilder
+import java.util.*
+import kotlin.collections.ArrayList
 
 /**
  * @author liaomin
  * @date 6/19/20 2:51 下午
  * @version 1.0
  */
-open class Statement() {
+open class Statement {
 
     val lines = ArrayList<Line>()
 
@@ -19,7 +22,15 @@ open class Statement() {
 
     private var tabCount:Int = 0
 
-    fun newStatement():Statement = Statement()
+    fun reset(){
+        lines.clear()
+        val d  = Date().year
+        tabCount = 0
+        currentLine = Line()
+        lines.add(currentLine)
+    }
+
+    fun newStatement(): Statement = Statement()
 
     fun nextLine(){
         currentLine = Line()
@@ -38,15 +49,15 @@ open class Statement() {
         }
     }
 
-    fun append(str:CharSequence?):Statement{
+    fun append(str:CharSequence?): Statement {
         if(str != null){
             currentLine.append(str)
         }
         return this
     }
 
-    fun append(statement: Statement):Statement{
-        statement.lines.forEachIndexed { index, line ->
+    fun append(statement: Statement?): Statement {
+        statement?.lines?.forEachIndexed { index, line ->
             append(line.toString())
             if(index != statement.lines.size - 1){
                 nextLine()
@@ -55,13 +66,26 @@ open class Statement() {
         return this
     }
 
-    fun appendBeforeHead(str:CharSequence):Statement{
+    fun append(result: PsiResult): Statement {
+        val statement = result.statement
+        if(statement.isNotEmpty()){
+            append(statement)
+        }
+        return this
+    }
+
+
+    fun appendBeforeHead(str:CharSequence): Statement {
         currentLine.appendBeforeHead(str)
         return this
     }
 
     fun getLineSize():Int{
         return lines.size
+    }
+
+    fun isNotEmpty():Boolean{
+        return lines.size > 1 || currentLine.toString().isNotEmpty()
     }
 
     fun openQuote(){

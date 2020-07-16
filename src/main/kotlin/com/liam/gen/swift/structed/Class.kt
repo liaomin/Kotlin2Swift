@@ -1,14 +1,16 @@
 package com.liam.gen.swift.expr
 
-import com.liam.ast.writer.Statement
+import com.liam.gen.Statement
 import com.liam.gen.swift.*
 import com.liam.gen.swift.scope.FuncInfo
+import com.liam.gen.swift.scope.PsiResult
 import com.liam.gen.swift.scope.Scope
 import org.jetbrains.kotlin.psi.*
 
-open class Class : Handler<KtClass> {
+open class Class : Handler<KtClass>() {
 
-    fun genConstructor(gen: CodeGen,constructor:KtPrimaryConstructor,className: String,statement: Statement,scope: Scope){
+
+    fun genConstructor(gen: CodeGen, constructor:KtPrimaryConstructor, className: String, statement: Statement, scope: Scope){
         val args = ArrayList<FuncInfo.Args>()
         constructor.valueParameters.forEach {
             val name =  it.name
@@ -20,11 +22,12 @@ open class Class : Handler<KtClass> {
         statement.append("init(")
     }
 
-    fun genConstructor(gen: CodeGen,constructor:KtSecondaryConstructor,className: String,statement: Statement,scope: Scope){
+    fun genConstructor(gen: CodeGen, constructor:KtSecondaryConstructor, className: String, statement: Statement, scope: Scope){
 
     }
 
-    override fun genCode(gen: CodeGen, v: KtClass, statement: Statement, scope: Scope, targetType: String?, expectType: String?, shouldReturn: Boolean): String? {
+    override fun onGenCode(gen: CodeGen, v: KtClass, scope: Scope, targetType: String?, expectType: String?, shouldReturn: Boolean): PsiResult {
+        val statement = Statement()
         if(v.isEnum() || v.isInterface()){
             notSupport()
         }
@@ -43,8 +46,9 @@ open class Class : Handler<KtClass> {
             print("")
         }
         statement.nextLine()
-        return className
+        return PsiResult(statement,className,className)
     }
+
 
 
     companion object:Class()

@@ -1,13 +1,14 @@
 package com.liam.gen.swift.scope
 
 import com.alibaba.fastjson.JSON
+import com.alibaba.fastjson.annotation.JSONField
+import com.alibaba.fastjson.serializer.PropertyFilter
 import com.intellij.psi.PsiElement
-import com.liam.ast.writer.Statement
+import com.liam.gen.Statement
 import com.liam.gen.swift.Logger
 import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtFile
-import org.jetbrains.kotlin.psi.KtNamedFunction
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.collections.HashMap
 
@@ -26,7 +27,13 @@ data class FuncInfo(val name:String, val args:List<Args>, val returnType:String?
     }
 }
 
-data class PsiResult(val statement:Statement,val name:String?,val returnType:String?)
+data class PsiResult(val statement: Statement, val name:String?, val returnType:String?,var tag:Any? = null){
+    companion object{
+        val Null:PsiResult by lazy { PsiResult(Statement(),null,null) }
+    }
+}
+
+
 
 open class Scope(val parent: Scope? = null, val name:String? = null) {
 
@@ -111,7 +118,11 @@ open class Scope(val parent: Scope? = null, val name:String? = null) {
     }
 
     override fun toString(): String {
-        return JSON.toJSONString(this)
+        return JSON.toJSONString(this,object :PropertyFilter{
+            override fun apply(`object`: Any?, name: String?, value: Any?): Boolean {
+                return !name.equals("cache")
+            }
+        })
     }
 
 

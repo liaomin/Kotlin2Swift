@@ -24,9 +24,8 @@ open class GenTest {
         val code =  reader.readText()
         val ktFile = Parser().parsePsiFile(code)
         val codeGen =  FileCodeGen(ktFile)
-        codeGen.genCode()
         val fw = FileWriter(outFile)
-        fw.write(codeGen.statement.toString())
+        fw.write(codeGen.genCode().toString())
         fw.close()
     }
 

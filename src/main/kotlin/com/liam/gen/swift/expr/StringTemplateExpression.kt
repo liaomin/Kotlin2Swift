@@ -1,14 +1,16 @@
 package com.liam.gen.swift.expr
 
-import com.liam.ast.writer.Statement
+import com.liam.gen.Statement
 import com.liam.gen.swift.CodeGen
 import com.liam.gen.swift.Handler
+import com.liam.gen.swift.scope.PsiResult
 import com.liam.gen.swift.scope.Scope
 import org.jetbrains.kotlin.psi.*
 
-open class StringTemplateExpression : Handler<KtStringTemplateExpression> {
+open class StringTemplateExpression : Handler<KtStringTemplateExpression>() {
 
-    override fun genCode(gen: CodeGen, v: KtStringTemplateExpression, statement: Statement, scope: Scope, targetType: String?, expectType: String?, shouldReturn: Boolean): String? {
+    override fun onGenCode(gen: CodeGen, v: KtStringTemplateExpression, scope: Scope, targetType: String?, expectType: String?, shouldReturn: Boolean): PsiResult {
+        val statement = Statement()
         val raw = v.text.startsWith("\"\"\"")
         if(raw){
             statement.append("\"\"\"")
@@ -22,7 +24,7 @@ open class StringTemplateExpression : Handler<KtStringTemplateExpression> {
                 is KtSimpleNameStringTemplateEntry ->
                     statement.append(it.expression?.text ?: error("No short tmpl text"))
                 is KtBlockStringTemplateEntry ->
-                    gen.genExpr(it.expression ?: error("No expr tmpl"),statement, scope,targetType, expectType, shouldReturn)
+                    statement.append(gen.genExpr(it.expression ?: error("No expr tmpl"), scope,targetType, expectType, shouldReturn))
                 is KtEscapeStringTemplateEntry ->
                     if (v.text.startsWith("\\u"))
                         statement.append(it.text.substring(2))
@@ -37,11 +39,10 @@ open class StringTemplateExpression : Handler<KtStringTemplateExpression> {
         }else{
             statement.append("\"")
         }
-        return "String"
+        return PsiResult(statement,null,"String")
     }
 
 
     companion object:StringTemplateExpression()
-
 
 }

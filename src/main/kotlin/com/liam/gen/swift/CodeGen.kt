@@ -1,11 +1,12 @@
 package com.liam.gen.swift
 
 import com.intellij.psi.PsiElement
-import com.liam.ast.writer.Statement
+import com.liam.gen.Statement
 import com.liam.gen.swift.expr.Class
 import com.liam.gen.swift.expr.Expr
 import com.liam.gen.swift.expr.Func
 import com.liam.gen.swift.property.Property
+import com.liam.gen.swift.scope.PsiResult
 import com.liam.gen.swift.scope.Scope
 import org.jetbrains.kotlin.psi.*
 import java.lang.RuntimeException
@@ -21,64 +22,52 @@ fun notSupport(message:String = ""):String{
     return msg
 }
 
-interface Handler<T:PsiElement>{
-    fun genCode(gen:CodeGen, v: T, statement: Statement, scope: Scope, targetType:String?, expectType:String?, shouldReturn:Boolean):String?
-}
+
+abstract class CodeGen(){
+
+    abstract fun genCode():Statement
 
 
-abstract class CodeGen(val statement: Statement = Statement()){
-
-    abstract fun genCode()
-
-
-    open fun genModifiers(modifierList: KtModifierList,target: KtElement,statement: Statement,scope: Scope){
+    open fun genModifiers(modifierList: KtModifierList, target: KtElement, scope: Scope){
         //TODO
     }
 
-    open fun genClassOrObject(classOrObject: KtClassOrObject, statement: Statement, scope: Scope, targetType:String?, expectType:String?, shouldReturn:Boolean){
-        when(classOrObject){
-            is KtClass -> Class.genCode(this,classOrObject,statement,scope,targetType,expectType,shouldReturn)
+    open fun genClassOrObject(classOrObject: KtClassOrObject, scope: Scope, targetType:String?, expectType:String?, shouldReturn:Boolean):PsiResult{
+        return when(classOrObject){
+            is KtClass -> Class.genCode(this,classOrObject,scope,targetType,expectType,shouldReturn)
+            else -> PsiResult.Null
         }
     }
 
-    open fun genProperty(property: KtProperty, statement: Statement, scope: Scope, targetType:String?, expectType:String?, shouldReturn:Boolean){
-        Property.genCode(this,property, statement, scope,targetType, expectType, shouldReturn)
-    }
+    open fun genProperty(property: KtProperty, scope: Scope, targetType:String?, expectType:String?, shouldReturn:Boolean):PsiResult = Property.genCode(this,property, scope,targetType, expectType, shouldReturn)
 
-    open fun genExpr(v: KtExpression, statement: Statement, scope: Scope, targetType:String?, expectType:String?, shouldReturn:Boolean):String?{
-        return Expr.genCode(this,v,statement, scope,targetType,expectType,shouldReturn)
-    }
-//
-//    open fun genExpr(v: KtExpression,scope: Scope):Statement{
-//        val statement = Statement()
-//        Expr.genCode(this,v,statement, scope)
-//        return statement
-//    }
+    open fun genExpr(v: KtExpression, scope: Scope, targetType:String?, expectType:String?, shouldReturn:Boolean):PsiResult = Expr.genCode(this,v, scope,targetType,expectType,shouldReturn)
 
-    open fun genNamedFunction(func: KtNamedFunction, statement: Statement, scope: Scope, targetType:String?, expectType:String?, shouldReturn:Boolean){
-        Func.genCode(this,func,statement, scope,targetType, expectType, shouldReturn)
-    }
+    open fun genNamedFunction(func: KtNamedFunction, scope: Scope, targetType:String?, expectType:String?, shouldReturn:Boolean):PsiResult = Func.genCode(this,func, scope,targetType, expectType, shouldReturn)
 
-
-    open fun genType(v: KtTypeParameter, statement: Statement, scope: Scope, containBasicType:Boolean = true) {
+    open fun genType(v: KtTypeParameter, scope: Scope, containBasicType:Boolean = true):PsiResult {
+        val statement = Statement()
         statement.append(v.name)
+        var type:String? = null
         v.extendsBound?.let {
             statement.append(":")
-            val type = TypeUtils.getType(it)
+            type = TypeUtils.getType(it)
             if(!containBasicType && TypeUtils.isBasicType(type)){
                 notSupport("basic type can't be here")
             }
             statement.append(type)
         }
+        return PsiResult(statement,null,type)
     }
 
-    open fun genDeclaration(v:KtDeclaration, statement: Statement, scope: Scope, targetType:String?, expectType:String?, shouldReturn:Boolean){
-        when(v){
-            is KtClassOrObject -> genClassOrObject(v,statement,scope,targetType,expectType,shouldReturn)
-            is KtProperty -> genProperty(v,statement,scope,targetType, expectType, shouldReturn)
-            is KtNamedFunction -> genNamedFunction(v,statement, scope, targetType, expectType, shouldReturn)
-            else ->{
+    open fun genDeclaration(v:KtDeclaration, statement: Statement, scope: Scope, targetType:String?, expectType:String?, shouldReturn:Boolean):PsiResult{
+        return when(v){
+            is KtClassOrObject -> genClassOrObject(v,scope,targetType,expectType,shouldReturn)
+            is KtProperty -> genProperty(v,scope,targetType, expectType, shouldReturn)
+            is KtNamedFunction -> genNamedFunction(v, scope, targetType, expectType, shouldReturn)
+            else -> {
                 notSupport()
+                PsiResult.Null
             }
         }
 //        is KtEnumEntry -> convertEnumEntry(v)
@@ -92,14 +81,12 @@ abstract class CodeGen(val statement: Statement = Statement()){
 //        else -> error("Unrecognized declaration type for $v")
     }
 
-    open fun genType(v: KtTypeProjection,statement: Statement,scope: Scope) = v.typeReference?.let { genType(it,statement,scope, it.modifierList) }
+    open fun genType(v: KtTypeProjection, scope: Scope) = v.typeReference?.let { genType(it,scope, it.modifierList) }
 
-    open fun genType(v: KtTypeReference, statement: Statement, scope: Scope, modifierList: KtModifierList? = null):String?{
+    open fun genType(v: KtTypeReference,  scope: Scope, modifierList: KtModifierList? = null):String?{
         if(modifierList != null) notSupport()
         val type = TypeUtils.getType(v)
-        statement.append(type)
         return type
     }
-
 
 }

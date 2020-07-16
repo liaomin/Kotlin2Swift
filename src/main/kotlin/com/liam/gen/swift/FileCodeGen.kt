@@ -1,5 +1,6 @@
 package com.liam.gen.swift
 
+import com.liam.gen.Statement
 import com.liam.gen.swift.scope.Scope
 import org.jetbrains.kotlin.psi.*
 
@@ -11,7 +12,8 @@ class FileCodeGen(val psiFile:KtFile) : CodeGen(){
 
     val importes:ArrayList<String> = ArrayList()
 
-    override fun genCode() {
+    override fun genCode():Statement {
+        val statement: Statement = Statement()
         val scope = Scope().discovery(psiFile)
         psiFile.importDirectives?.forEach {
             val packaes = StringBuilder()
@@ -32,17 +34,17 @@ class FileCodeGen(val psiFile:KtFile) : CodeGen(){
 //                is KtEnumEntry -> convertEnumEntry(v)
                 is KtClassOrObject -> {
                     statement.nextLine()
-                    genClassOrObject(it,statement, scope,null,null,false)
+                    statement.append(genClassOrObject(it, scope,null,null,false))
                 }
 //                is KtAnonymousInitializer -> convertInit(v)
                 is KtNamedFunction -> {
                     statement.nextLine()
-                    genNamedFunction(it,statement, scope,null,null,false)
+                    statement.append(genNamedFunction(it, scope,null,null,false))
                 }
 //                is KtDestructuringDeclaration -> convertProperty(v)
                 is KtProperty -> {
                     statement.nextLine()
-                    genProperty(it,statement, scope,null,null,false)
+                    statement.append(genProperty(it, scope,null,null,false))
                 }
 //                is KtTypeAlias -> convertTypeAlias(v)
 //                is KtSecondaryConstructor -> convertConstructor(v)
@@ -52,6 +54,7 @@ class FileCodeGen(val psiFile:KtFile) : CodeGen(){
 
         println(scope)
         println(statement)
+        return  statement
     }
 
 }

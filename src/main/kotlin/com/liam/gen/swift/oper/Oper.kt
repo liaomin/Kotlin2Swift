@@ -1,6 +1,6 @@
 package com.liam.gen.swift.oper
 
-import com.liam.ast.writer.Statement
+import com.liam.gen.Statement
 import com.liam.gen.swift.CodeGen
 import com.liam.gen.swift.scope.Scope
 import org.jetbrains.kotlin.psi.KtExpression

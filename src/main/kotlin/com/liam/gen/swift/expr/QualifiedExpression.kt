@@ -1,25 +1,29 @@
 package com.liam.gen.swift.expr
 
-import com.liam.ast.writer.Statement
+import com.liam.gen.Statement
 import com.liam.gen.swift.CodeGen
 import com.liam.gen.swift.Handler
+import com.liam.gen.swift.scope.PsiResult
 import com.liam.gen.swift.scope.Scope
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
 import org.jetbrains.kotlin.psi.KtQualifiedExpression
 
-open class QualifiedExpression : Handler<KtQualifiedExpression> {
+open class QualifiedExpression : Handler<KtQualifiedExpression>() {
 
-    override fun genCode(gen: CodeGen, v: KtQualifiedExpression, statement: Statement, scope: Scope, targetType: String?, expectType: String?, shouldReturn: Boolean): String? {
-        val targetType = gen.genExpr(v.receiverExpression,statement, scope,targetType, expectType, shouldReturn)
+    override fun onGenCode(gen: CodeGen, v: KtQualifiedExpression, scope: Scope, targetType: String?, expectType: String?, shouldReturn: Boolean): PsiResult {
+        val statement = Statement()
+        var r = gen.genExpr(v.receiverExpression, scope,targetType, expectType, shouldReturn)
+        statement.append(r)
+        val targetType = r.returnType
         if(v is KtDotQualifiedExpression){
             statement.append(".")
         }else{
             statement.append("?.")
         }
         v.selectorExpression?.let {
-            gen.genExpr(it,statement, scope,targetType,expectType, shouldReturn)
+            statement.append(gen.genExpr(it, scope,targetType,expectType, shouldReturn))
         }
-        return null
+        return PsiResult(statement,null,null)
     }
 
     companion object:QualifiedExpression()

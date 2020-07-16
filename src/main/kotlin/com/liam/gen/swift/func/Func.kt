@@ -1,12 +1,13 @@
 package com.liam.gen.swift.expr
 
-import com.liam.ast.writer.Statement
+import com.liam.gen.Statement
 import com.liam.gen.swift.*
 import com.liam.gen.swift.scope.FuncInfo
+import com.liam.gen.swift.scope.PsiResult
 import com.liam.gen.swift.scope.Scope
 import org.jetbrains.kotlin.psi.*
 
-open class Func : Handler<KtNamedFunction> {
+open class Func : Handler<KtNamedFunction>() {
 
     fun getFuncInfo(gen: CodeGen, func: KtNamedFunction, s: Statement, scope: Scope, targetType: String?, expectType: String?, shouldReturn: Boolean): FuncInfo {
         val funcName = func.name!!
@@ -15,9 +16,7 @@ open class Func : Handler<KtNamedFunction> {
             val name =  it.name
             val type = it.typeReference?.let { TypeUtils.getType(it) }
             val default = it.defaultValue?.let {
-                val statement = s.newStatement()
-                gen.genExpr(it,statement ,scope, targetType, expectType, shouldReturn)
-                statement.toString()
+                gen.genExpr(it ,scope, targetType, expectType, shouldReturn).statement.toString()
             } ?: null
             args.add(FuncInfo.Args(name!!,type!!,default))
         }
@@ -25,22 +24,23 @@ open class Func : Handler<KtNamedFunction> {
         return FuncInfo(funcName, args, returnType);
     }
 
-    override fun genCode(gen: CodeGen, v: KtNamedFunction, statement: Statement, scope: Scope, targetType: String?, expectType: String?, shouldReturn: Boolean): String? {
+    override fun onGenCode(gen: CodeGen, v: KtNamedFunction, scope: Scope, targetType: String?, expectType: String?, shouldReturn: Boolean): PsiResult {
+        val statement = Statement()
         if(v.receiverTypeReference != null){
             //TODO 扩展类
             if(scope.parent != null){
                 notSupport()
             }
         }else{
-           return genNormalFunc(gen,v, statement, scope, targetType, expectType, shouldReturn)
+            return PsiResult(statement,null,genNormalFunc(gen,v, statement, scope, targetType, expectType, shouldReturn))
         }
-        return null
+        return PsiResult(statement,null,null)
     }
 
     fun genNormalFunc(gen: CodeGen, func: KtNamedFunction, s: Statement, scope: Scope, targetType: String?, expectType: String?, shouldReturn: Boolean): String?{
         val statement = s.newStatement()
         val newScope = scope.newScope()
-        func.modifierList?.let { gen.genModifiers(it,func,statement,scope) }
+        func.modifierList?.let { gen.genModifiers(it,func,scope) }
         val funcInfo = getFuncInfo(gen,func,statement,scope, targetType, expectType, shouldReturn)
         scope.addFunc(funcInfo)
         statement.nextLine()
@@ -51,7 +51,7 @@ open class Func : Handler<KtNamedFunction> {
                 if(index > 0){
                     statement.append(", ")
                 }
-                gen.genType(ktTypeParameter,statement,newScope,false)
+                statement.append(gen.genType(ktTypeParameter,newScope,false))
             }
             statement.append(">")
         }
@@ -71,7 +71,7 @@ open class Func : Handler<KtNamedFunction> {
         func.bodyExpression?.let {
             statement.append("{")
             statement.openQuote()
-            gen.genExpr(it,statement, newScope,targetType, funcInfo.returnType, funcInfo.returnType != null)
+            statement.append(gen.genExpr(it, newScope,targetType, funcInfo.returnType, funcInfo.returnType != null))
             statement.closeQuote()
             statement.append("}")
         }

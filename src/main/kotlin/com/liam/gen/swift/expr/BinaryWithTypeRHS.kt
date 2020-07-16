@@ -1,21 +1,24 @@
 package com.liam.gen.swift.expr
 
-import com.liam.ast.writer.Statement
+import com.liam.gen.Statement
 import com.liam.gen.swift.CodeGen
 import com.liam.gen.swift.Handler
+import com.liam.gen.swift.scope.PsiResult
 import com.liam.gen.swift.scope.Scope
 import org.jetbrains.kotlin.psi.KtBinaryExpressionWithTypeRHS
 
-open class BinaryWithTypeRHS : Handler<KtBinaryExpressionWithTypeRHS> {
+open class BinaryWithTypeRHS : Handler<KtBinaryExpressionWithTypeRHS>() {
 
-    override fun genCode(gen: CodeGen, v: KtBinaryExpressionWithTypeRHS, statement: Statement, scope: Scope, targetType: String?, expectType: String?, shouldReturn: Boolean): String? {
+    override fun onGenCode(gen: CodeGen, v: KtBinaryExpressionWithTypeRHS, scope: Scope, targetType: String?, expectType: String?, shouldReturn: Boolean): PsiResult {
+        val statement = Statement()
         var expect= expectType
         val left = v.left ?: error("no left type")
         val right = v.right ?: error("no right type")
-        gen.genExpr(left,statement, scope,null,expectType,shouldReturn)
+        var r = gen.genExpr(left, scope,null,expectType,shouldReturn)
+        statement.append(r)
         statement.append(" ${v.operationReference.text} ")
-        val rightType = gen.genType(right,statement, scope)
-        return expect ?: rightType
+        val rightType = gen.genType(right, scope)
+        return PsiResult(statement,null,expect ?: rightType)
     }
 
     companion object:BinaryWithTypeRHS()
