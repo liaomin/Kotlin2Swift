@@ -18,6 +18,7 @@ open class BinaryWithTypeRHS : Handler<KtBinaryExpressionWithTypeRHS>() {
         statement.append(r)
         statement.append(" ${v.operationReference.text} ")
         val rightType = gen.genType(right, scope)
+        statement.append(rightType)
         return PsiResult(statement,null,expect ?: rightType)
     }
 

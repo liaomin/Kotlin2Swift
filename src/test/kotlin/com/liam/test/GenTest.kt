@@ -14,7 +14,7 @@ open class GenTest {
 
 
     fun testGen(path: String){
-        val outFile = File("/Users/liaomin/Documents/ioslearn/Learn/Learn/conver/${path.replace(".kt",".swift")}")
+        val outFile = File("/Users/liaomin/Documents/ioslearn/SwiftTemp/SwiftTemp/conver/${path.replace(".kt",".swift")}")
         if(outFile.parentFile.exists()){
             outFile.parentFile.mkdirs()
         }
@@ -40,6 +40,11 @@ open class GenTest {
     }
 
     @Test
+    fun testBasicClass(){
+        testGen("basic/Class.kt")
+    }
+
+    @Test
     fun testBasicControlFlow(){
         val q =  ControlFlow().hasPrefix(1)
         testGen("basic/ControlFlow.kt")
@@ -49,7 +54,7 @@ open class GenTest {
         @BeforeClass
         @JvmStatic
         fun setUpBeforeClass(){
-            println("222")
+
         }
     }
 

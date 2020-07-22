@@ -86,9 +86,8 @@ open class IFExpression : Handler<KtIfExpression>() {
             statement.append(r)
             statement.closeQuote()
             statement.append("}")
-        }else{
-            statement.nextLine()
         }
+        statement.nextLine()
         if(shouldReturn){
             statement.closeQuote()
             statement.append("}()")

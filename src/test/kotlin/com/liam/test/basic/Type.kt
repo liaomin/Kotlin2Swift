@@ -7,6 +7,7 @@ package com.liam.test.basic
  * @version 1.0
  */
 class BasicTypes {
+
     fun a(){
 
     }

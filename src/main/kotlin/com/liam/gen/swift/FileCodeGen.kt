@@ -14,7 +14,7 @@ class FileCodeGen(val psiFile:KtFile) : CodeGen(){
 
     override fun genCode():Statement {
         val statement: Statement = Statement()
-        val scope = Scope().discovery(psiFile)
+        val scope = Scope()
         psiFile.importDirectives?.forEach {
             val packaes = StringBuilder()
             it.importedFqName?.pathSegments()?.forEachIndexed { index, name ->

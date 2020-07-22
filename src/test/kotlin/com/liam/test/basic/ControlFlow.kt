@@ -56,6 +56,21 @@ class ControlFlow {
         }
         else -> false
     }
+
+
+    fun whenExpression(x:Int=0,y:Int= 2){
+        fun hasPrefix(x: Any) = when(x) {
+            is String -> true
+            else -> false
+        }
+        when (x) {
+            is Int ->  println("x is Int")
+            else -> { // Note the block
+                println("x is neither 1 nor 2")
+            }
+        }
+    }
+
     fun ifExpression(){
         whenExpression(1)
         // Traditional usage
@@ -84,18 +99,6 @@ class ControlFlow {
         }
     }
 
-    fun whenExpression(x:Int=0,y:Int= 2){
-        fun hasPrefix(x: Any) = when(x) {
-            is String -> true
-            else -> false
-        }
-        when (x) {
-            is Int ->  println("x is Int")
-            else -> { // Note the block
-                println("x is neither 1 nor 2")
-            }
-        }
-    }
 
     fun ForLoops(){
 //        for (i in 1..3) {

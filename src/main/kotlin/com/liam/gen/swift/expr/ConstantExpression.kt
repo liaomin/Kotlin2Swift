@@ -48,12 +48,20 @@ open class ConstantExpression : Handler<KtConstantExpression>() {
             }
             KtNodeTypes.FLOAT_CONSTANT -> {
                 var v = v.text
+                var expect:String? = null
+                expectType?.let {
+                    if(it.equals("Double") || it.equals("Float")){
+                        expect = it
+                    }
+                }
+                var type = expect ?: "Double"
                 if (v.endsWith("f")) {
                     statement.append(v.subSequence(0, v.length - 1))
+                    type = "Float"
                 } else {
                     statement.append(v)
                 }
-                return PsiResult(statement,null,"Float")
+                return PsiResult(statement,null,type)
             }
             KtNodeTypes.NULL -> {
                 statement.append("nil")

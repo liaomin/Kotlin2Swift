@@ -11,8 +11,8 @@ import com.liam.gen.swift.scope.Scope
 import org.jetbrains.kotlin.psi.*
 import java.lang.RuntimeException
 
-fun notSupport(message:String = ""):String{
-    val msg = "not support $message"
+fun onError(message:String = ""):String{
+    val msg = message
     Logger.error(msg)
     try {
         throw RuntimeException(msg)
@@ -20,6 +20,11 @@ fun notSupport(message:String = ""):String{
         e.printStackTrace();
     }
     return msg
+}
+
+fun notSupport(message:String = ""):String{
+    val msg = "not support $message"
+    return onError(msg)
 }
 
 

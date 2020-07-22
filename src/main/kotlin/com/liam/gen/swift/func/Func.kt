@@ -9,7 +9,7 @@ import org.jetbrains.kotlin.psi.*
 
 open class Func : Handler<KtNamedFunction>() {
 
-    fun getFuncInfo(gen: CodeGen, func: KtNamedFunction, s: Statement, scope: Scope, targetType: String?, expectType: String?, shouldReturn: Boolean): FuncInfo {
+    fun getFuncInfo(gen: CodeGen, func: KtNamedFunction, scope: Scope, targetType: String?, expectType: String?, shouldReturn: Boolean): FuncInfo {
         val funcName = func.name!!
         val args = ArrayList<FuncInfo.Args>()
         func.valueParameters.forEach {
@@ -41,7 +41,7 @@ open class Func : Handler<KtNamedFunction>() {
         val statement = s.newStatement()
         val newScope = scope.newScope()
         func.modifierList?.let { gen.genModifiers(it,func,scope) }
-        val funcInfo = getFuncInfo(gen,func,statement,scope, targetType, expectType, shouldReturn)
+        val funcInfo = getFuncInfo(gen,func,scope, targetType, expectType, shouldReturn)
         scope.addFunc(funcInfo)
         statement.nextLine()
         statement.append("func ${funcInfo.name}")
@@ -55,7 +55,7 @@ open class Func : Handler<KtNamedFunction>() {
             }
             statement.append(">")
         }
-        statement.append("(")
+        statement.append(" (")
         funcInfo.args.forEachIndexed { index, args ->
             if(index>0){
                 statement.append(",")
@@ -80,12 +80,6 @@ open class Func : Handler<KtNamedFunction>() {
         return funcInfo.returnType
     }
 
-
-
-
-//    open fun convertFuncBody(v: KtExpression) =
-//            if (v is KtBlockExpression) Node.Decl.Func.Body.Block(convertBlock(v)).map(v)
-//            else Node.Decl.Func.Body.Expr(convertExpr(v)).map(v)
 
     companion object:Func()
 

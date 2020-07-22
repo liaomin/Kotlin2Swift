@@ -4,6 +4,8 @@ class Q {
 
 }
 
+
+//测试泛型
 //fun <T:Q> TE(int: Int = 1,string: String):Int{
 //    val intw = 1
 //    val temp = intw as T
@@ -11,3 +13,5 @@ class Q {
 //    return ww
 //}
 
+//TODO
+//测试默认值

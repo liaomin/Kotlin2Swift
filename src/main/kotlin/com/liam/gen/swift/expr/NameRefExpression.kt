@@ -3,6 +3,7 @@ package com.liam.gen.swift.expr
 import com.liam.gen.Statement
 import com.liam.gen.swift.CodeGen
 import com.liam.gen.swift.Handler
+import com.liam.gen.swift.scope.FuncInfo
 import com.liam.gen.swift.scope.PsiResult
 import com.liam.gen.swift.scope.Scope
 import org.jetbrains.kotlin.psi.*
@@ -15,10 +16,12 @@ open class NameRefExpression : Handler<KtNameReferenceExpression>() {
         statement.append(name)
         val p = v.parent
         if(p is KtCallExpression){
-            val argTypeList = ArrayList<String>()
+            val argTypeList = ArrayList<FuncInfo.Args>()
             p.valueArgumentList?.arguments?.forEachIndexed { index, ktValueArgument ->
+                val name = ktValueArgument.getArgumentName()?.asName?.asString()
                 ktValueArgument.getArgumentExpression()?.let {
-                    argTypeList.add(gen.genExpr(it, scope,targetType, expectType, shouldReturn).returnType!!)
+                    val type = gen.genExpr(it, scope,targetType, expectType, shouldReturn).returnType
+                    argTypeList.add(FuncInfo.Args(name, type))
                 }
             }
             return PsiResult(statement,name,scope.getFuncType(name,argTypeList))
