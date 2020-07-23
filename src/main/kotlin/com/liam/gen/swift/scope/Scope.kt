@@ -102,6 +102,14 @@ open class Scope(val parent: Scope? = null, val name:String? = null) {
         return scope
     }
 
+    fun getClassScope(className: String):Scope? {
+        var scope =  typeScope[className]
+        if(scope == null){
+            scope =  parent?.getClassScope(className)
+        }
+        return scope
+    }
+
     fun getSuperClass(className: String):String{
         val s = typeScope[className]
         s?.let {
@@ -128,5 +136,19 @@ open class Scope(val parent: Scope? = null, val name:String? = null) {
     class ClassScope(parent: Scope? = null, name:String? = null) : Scope(parent,name){
         val superClasses:LinkedList<String> by lazy { LinkedList<String>() }
         var isInterface:Boolean = false
+
+        fun superClassExistFunc(info: FuncInfo):Boolean{
+            superClasses.forEach {
+                getClassScope(it)?.let {
+                    if(it is ClassScope && !it.isInterface){
+                        val info = it.getFuncInfo(info.name,info.args)
+                        if(info != null){
+                            return true
+                        }
+                    }
+                }
+            }
+            return false
+        }
     }
 }

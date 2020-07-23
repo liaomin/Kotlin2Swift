@@ -1,6 +1,9 @@
 package com.liam.gen.swift
 
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiWhiteSpace
+import com.liam.ast.psi.Converter
+import com.liam.ast.psi.Node
 import com.liam.gen.Statement
 import com.liam.gen.swift.expr.Class
 import com.liam.gen.swift.expr.Expr
@@ -9,6 +12,7 @@ import com.liam.gen.swift.property.Property
 import com.liam.gen.swift.scope.PsiResult
 import com.liam.gen.swift.scope.Scope
 import org.jetbrains.kotlin.psi.*
+import org.jetbrains.kotlin.psi.psiUtil.children
 import java.lang.RuntimeException
 
 fun onError(message:String = ""):String{
@@ -33,8 +37,20 @@ abstract class CodeGen(){
     abstract fun genCode():Statement
 
 
-    open fun genModifiers(modifierList: KtModifierList, target: KtElement, scope: Scope){
-        //TODO
+    open fun genModifiers(modifierList: KtModifierList, target: KtElement, scope: Scope,statement: Statement){
+        modifierList.node?.children().orEmpty().forEach {
+            val psi = it.psi
+            when (psi){
+                is KtAnnotationEntry -> {}
+                is KtAnnotation -> {}
+                is PsiWhiteSpace -> {}
+                else -> when (psi.text) {
+                    // We ignore some modifiers because we handle them elsewhere
+                    "override" -> {
+                    }
+                }
+            }
+        }
     }
 
     open fun genClassOrObject(classOrObject: KtClassOrObject, scope: Scope, targetType:String?, expectType:String?, shouldReturn:Boolean):PsiResult{

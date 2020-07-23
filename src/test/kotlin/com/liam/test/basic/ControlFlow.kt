@@ -10,6 +10,10 @@
 // */
 
 fun a():Int{
+
+    arrayListOf<String>().forEach {
+        return@forEach
+    }
     return 1
 }
 

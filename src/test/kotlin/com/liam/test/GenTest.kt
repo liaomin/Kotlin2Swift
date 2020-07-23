@@ -45,6 +45,11 @@ open class GenTest {
     }
 
     @Test
+    fun testBasicInterface(){
+        testGen("basic/Interface.kt")
+    }
+
+    @Test
     fun testBasicControlFlow(){
         val q =  ControlFlow().hasPrefix(1)
         testGen("basic/ControlFlow.kt")

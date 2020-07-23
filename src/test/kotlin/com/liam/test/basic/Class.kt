@@ -37,6 +37,12 @@ class TestClass(var int:Int):TestSuperClassA(1.0f){
     }
 }
 
+class TestClass2 private constructor(var int: Int){
+    inner class Inner{
+
+    }
+}
+
 fun main2() {
     val d:Double = 12.0
     val qdwdw = TestClass(double = d)

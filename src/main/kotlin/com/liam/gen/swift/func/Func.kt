@@ -40,10 +40,15 @@ open class Func : Handler<KtNamedFunction>() {
     fun genNormalFunc(gen: CodeGen, func: KtNamedFunction, s: Statement, scope: Scope, targetType: String?, expectType: String?, shouldReturn: Boolean): String?{
         val statement = s.newStatement()
         val newScope = scope.newScope()
-        func.modifierList?.let { gen.genModifiers(it,func,scope) }
+        func.modifierList?.let { gen.genModifiers(it,func,scope,statement) }
         val funcInfo = getFuncInfo(gen,func,scope, targetType, expectType, shouldReturn)
         scope.addFunc(funcInfo)
         statement.nextLine()
+        if(scope is Scope.ClassScope){
+            if(scope.superClassExistFunc(funcInfo)){
+                statement.append("override ")
+            }
+        }
         statement.append("func ${funcInfo.name}")
         if(func.hasTypeParameterListBeforeFunctionName()){
             statement.append("<")

@@ -5,6 +5,7 @@ import com.liam.gen.swift.*
 import com.liam.gen.swift.scope.FuncInfo
 import com.liam.gen.swift.scope.PsiResult
 import com.liam.gen.swift.scope.Scope
+import com.liam.gen.swift.structed.Interface
 import com.liam.gen.swift.structed.Struct
 import org.jetbrains.kotlin.psi.*
 import java.util.*
@@ -45,6 +46,7 @@ open class Class : Struct<KtClass>() {
             args.add(FuncInfo.Args(name!!,type!!,default))
         }
         scope.addFunc(FuncInfo(className, args, className))
+        scope.getClassScope(className)?.addFunc(FuncInfo("init",args,className))
         tempStatement.append(") {")
         tempStatement.openQuote()
         onBefore(tempStatement)
@@ -78,7 +80,6 @@ open class Class : Struct<KtClass>() {
 
     }
 
-
     fun genSecondaryConstructor(gen: CodeGen,v:KtSecondaryConstructor,scope: Scope,statement: Statement,className: String){
         statement.append(genConstructor(gen,v,scope,statement,className,{},{
             val st = it
@@ -104,10 +105,13 @@ open class Class : Struct<KtClass>() {
     }
 
     override fun onGenCode(gen: CodeGen, v: KtClass, scope: Scope, targetType: String?, expectType: String?, shouldReturn: Boolean): PsiResult {
-        val statement = Statement()
-        if(v.isEnum() || v.isInterface()){
+        if(v.isEnum()){
             notSupport()
         }
+        if(v.isInterface()){
+            return Interface.genCode(gen,v,scope,targetType,expectType,shouldReturn)
+        }
+        val statement = Statement()
         val className = v.name!!
         statement.append("class $className")
         val newScope = scope.newClassScope(className)
@@ -129,7 +133,21 @@ open class Class : Struct<KtClass>() {
         statement.append(" {")
         statement.openQuote()
         val primaryConstructor = v.primaryConstructor
-        primaryConstructor?.let { genPrimaryConstructor(gen,it,className,statement,scope,superCallExpression) }
+        if(primaryConstructor != null){
+            genPrimaryConstructor(gen,primaryConstructor,className,statement,scope,superCallExpression)
+        }else if(superCallExpression != null){
+            statement.append("init(){")
+            statement.openQuote()
+            val it = superCallExpression!!
+            val type = gen.genType(it.typeReference!!,scope)!!
+            statement.append("super.init(")
+            CallExpression.genArguments(gen,it,scope,statement,type,null,type,true)
+            statement.append(")")
+            statement.closeQuote()
+            statement.append("}")
+            statement.nextLine()
+        }
+
 
         v.declarations?.let {
             val secondaryConstructors = LinkedList<KtSecondaryConstructor>()

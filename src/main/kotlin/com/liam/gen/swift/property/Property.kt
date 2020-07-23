@@ -14,7 +14,7 @@ open class Property: Handler<KtProperty>() {
         val statement = Statement()
         val property = v
         property.modifierList?.also {
-            gen.genModifiers(it,property,scope)
+            gen.genModifiers(it,property,scope,statement)
         }
         if(property.isVar){
             statement.append("var ")
