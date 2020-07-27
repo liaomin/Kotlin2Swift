@@ -2,7 +2,8 @@ package com.liam.gen.swift.expr
 
 import com.liam.gen.Statement
 import com.liam.gen.swift.*
-import com.liam.gen.swift.scope.FuncInfo
+import com.liam.gen.swift.per.FuncInfo
+import com.liam.gen.swift.per.Modifier
 import com.liam.gen.swift.scope.PsiResult
 import com.liam.gen.swift.scope.Scope
 import com.liam.gen.swift.structed.Interface
@@ -19,6 +20,8 @@ open class Class : Struct<KtClass>() {
         if(isConvenience()){
             tempStatement.append("convenience ")
         }
+        val nodes = tempStatement.currentLine.nodes
+        val index = nodes.size
         tempStatement.append("init(")
         constructor.valueParameters.forEachIndexed { index, ktParameter ->
             val name =  ktParameter.name
@@ -45,8 +48,19 @@ open class Class : Struct<KtClass>() {
 
             args.add(FuncInfo.Args(name!!,type!!,default))
         }
-        scope.addFunc(FuncInfo(className, args, className))
-        scope.getClassScope(className)?.addFunc(FuncInfo("init",args,className))
+        val funcInfo = FuncInfo(className, args, className)
+        scope.addFunc(funcInfo)
+        val funcInfo2 = FuncInfo("init", args, className)
+        scope.getScope(className)?.let {
+            it.addFunc(funcInfo2)
+            if(it is Scope.ClassScope && it.shouldAddOverride(funcInfo2)){
+                nodes.add(index,"override ")
+            }
+        }
+        if(isConvenience()){
+            funcInfo.modifierList.add(Modifier.CONVENIENCE)
+            funcInfo2.modifierList.add(Modifier.CONVENIENCE)
+        }
         tempStatement.append(") {")
         tempStatement.openQuote()
         onBefore(tempStatement)
@@ -88,11 +102,15 @@ open class Class : Struct<KtClass>() {
                 if(it.isCallToThis){
                     st.append("self.init(")
                 }else{
+                    if(className.equals("InterfaceClass3")){
+                        print("")
+                    }
                     funcName = scope.getSuperClass(className)
                     if(funcName.equals(className)){
-                        Logger.error("not found super class for $className")
+                        return@let
+                    }else{
+                        st.append("super.init(")
                     }
-                    st.append("super.init(")
                 }
                 val temp = st.newStatement()
                 CallExpression.genArguments(gen,it,scope,temp,funcName,null,funcName,false)
@@ -136,6 +154,14 @@ open class Class : Struct<KtClass>() {
         if(primaryConstructor != null){
             genPrimaryConstructor(gen,primaryConstructor,className,statement,scope,superCallExpression)
         }else if(superCallExpression != null){
+            val args = ArrayList<FuncInfo.Args>()
+            val classFunInfo = FuncInfo(className, args, className)
+            scope.addFunc(classFunInfo)
+            val initFuncInfo = FuncInfo("init", args, className)
+            newScope.addFunc(initFuncInfo)
+            if(newScope.shouldAddOverride(initFuncInfo)){
+                statement.append("override ")
+            }
             statement.append("init(){")
             statement.openQuote()
             val it = superCallExpression!!
@@ -147,7 +173,6 @@ open class Class : Struct<KtClass>() {
             statement.append("}")
             statement.nextLine()
         }
-
 
         v.declarations?.let {
             val secondaryConstructors = LinkedList<KtSecondaryConstructor>()

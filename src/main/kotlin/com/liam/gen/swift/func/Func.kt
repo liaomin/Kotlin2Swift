@@ -2,7 +2,8 @@ package com.liam.gen.swift.expr
 
 import com.liam.gen.Statement
 import com.liam.gen.swift.*
-import com.liam.gen.swift.scope.FuncInfo
+import com.liam.gen.swift.per.FuncInfo
+import com.liam.gen.swift.per.Modifier
 import com.liam.gen.swift.scope.PsiResult
 import com.liam.gen.swift.scope.Scope
 import org.jetbrains.kotlin.psi.*
@@ -45,8 +46,9 @@ open class Func : Handler<KtNamedFunction>() {
         scope.addFunc(funcInfo)
         statement.nextLine()
         if(scope is Scope.ClassScope){
-            if(scope.superClassExistFunc(funcInfo)){
+            if(scope.shouldAddOverride(funcInfo)){
                 statement.append("override ")
+                funcInfo.modifierList.add(Modifier.OVERRIDE)
             }
         }
         statement.append("func ${funcInfo.name}")

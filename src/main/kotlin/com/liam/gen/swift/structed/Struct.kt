@@ -4,14 +4,10 @@ import com.intellij.psi.PsiElement
 import com.liam.gen.Statement
 import com.liam.gen.swift.CodeGen
 import com.liam.gen.swift.Handler
-import com.liam.gen.swift.scope.FuncInfo
-import com.liam.gen.swift.scope.PsiResult
 import com.liam.gen.swift.scope.Scope
 import org.jetbrains.kotlin.psi.*
-import java.util.*
-import kotlin.collections.HashMap
 
-abstract class Struct<T : PsiElement> : Handler<T>() {
+abstract class Struct<T:PsiElement> : Handler<T>() {
 
 
     fun genDeclarations(gen: CodeGen,scope: Scope,declarations:List<KtDeclaration>): Statement {

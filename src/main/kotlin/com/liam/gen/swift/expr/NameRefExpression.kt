@@ -3,7 +3,7 @@ package com.liam.gen.swift.expr
 import com.liam.gen.Statement
 import com.liam.gen.swift.CodeGen
 import com.liam.gen.swift.Handler
-import com.liam.gen.swift.scope.FuncInfo
+import com.liam.gen.swift.per.FuncInfo
 import com.liam.gen.swift.scope.PsiResult
 import com.liam.gen.swift.scope.Scope
 import org.jetbrains.kotlin.psi.*

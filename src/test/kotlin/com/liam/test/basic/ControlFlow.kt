@@ -1,19 +1,16 @@
-//package com.liam.test.basic
-//
-//import org.jetbrains.kotlin.resolve.constants.evaluate.parseBoolean
-//
-///**
-// * https://kotlinlang.org/docs/reference/control-flow.html
-// * @author liaomin
-// * @date 6/28/20 4:48 下午
-// * @version 1.0
-// */
+package com.liam.test.basic
+/**
+ * https://kotlinlang.org/docs/reference/control-flow.html
+ * @author liaomin
+ * @date 6/28/20 4:48 下午
+ * @version 1.0
+ */
 
 fun a():Int{
 
-    arrayListOf<String>().forEach {
-        return@forEach
-    }
+//    arrayListOf<String>().forEach {
+//        return@forEach
+//    }
     return 1
 }
 

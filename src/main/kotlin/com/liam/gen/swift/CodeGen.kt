@@ -1,16 +1,16 @@
 package com.liam.gen.swift
 
-import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiWhiteSpace
-import com.liam.ast.psi.Converter
-import com.liam.ast.psi.Node
 import com.liam.gen.Statement
 import com.liam.gen.swift.expr.Class
 import com.liam.gen.swift.expr.Expr
 import com.liam.gen.swift.expr.Func
+import com.liam.gen.swift.per.FileInfo
 import com.liam.gen.swift.property.Property
 import com.liam.gen.swift.scope.PsiResult
+import com.liam.gen.swift.scope.RootScope
 import com.liam.gen.swift.scope.Scope
+import com.liam.gen.swift.structed.File
 import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.psi.psiUtil.children
 import java.lang.RuntimeException
@@ -32,10 +32,7 @@ fun notSupport(message:String = ""):String{
 }
 
 
-abstract class CodeGen(){
-
-    abstract fun genCode():Statement
-
+class CodeGen{
 
     open fun genModifiers(modifierList: KtModifierList, target: KtElement, scope: Scope,statement: Statement){
         modifierList.node?.children().orEmpty().forEach {
@@ -110,4 +107,11 @@ abstract class CodeGen(){
         return type
     }
 
+    open fun genFiles(files:List<FileInfo>):Scope{
+        val scope = RootScope()
+        File.genFiles(this,files,scope)
+        return scope
+    }
+
 }
+

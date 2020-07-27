@@ -1,21 +1,23 @@
 package com.liam.test
 
-import ControlFlow
-import com.liam.ast.psi.Converter
+
 import com.liam.ast.psi.Parser
-import com.liam.gen.swift.FileCodeGen
+import com.liam.gen.swift.CodeGen
+import com.liam.gen.swift.per.FileInfo
+import com.liam.gen.swift.scope.Scope
 import org.junit.BeforeClass
 import org.junit.Test;
 import java.io.File
 import java.io.FileReader
 import java.io.FileWriter
+import java.util.*
 
 open class GenTest {
 
 
     fun testGen(path: String){
         val outFile = File("/Users/liaomin/Documents/ioslearn/SwiftTemp/SwiftTemp/conver/${path.replace(".kt",".swift")}")
-        if(outFile.parentFile.exists()){
+        if(!outFile.parentFile.exists()){
             outFile.parentFile.mkdirs()
         }
         val file = File("./src/test/kotlin/${GenTest::class.java.`package`.name.replace(".","/")}",path)
@@ -23,11 +25,36 @@ open class GenTest {
         val reader = FileReader(sourceFile)
         val code =  reader.readText()
         val ktFile = Parser().parsePsiFile(code)
-        val codeGen =  FileCodeGen(ktFile)
+        val f = com.liam.gen.swift.structed.File()
+        val scope = Scope()
+        val codeGen = CodeGen()
+        val result = f.genCode(codeGen,ktFile,scope,null,null,false)
         val fw = FileWriter(outFile)
-        fw.write(codeGen.genCode().toString())
+        println(result.statement)
+        println(scope)
+        fw.write(result.statement.toString())
         fw.close()
     }
+
+    @Test
+    fun testGenFiles(){
+        val dir = File("./src/test/kotlin/${GenTest::class.java.`package`.name.replace(".","/")}")
+        val dirs = dir.listFiles {f -> f.isDirectory}
+        val fileList:LinkedList<File> = LinkedList()
+        dirs.forEach {
+            it.listFiles() { dir, name -> name.endsWith(".kt") }.forEach { fileList.add(it) }
+        }
+        val fileInfos:LinkedList<FileInfo> = LinkedList()
+        val parser = Parser()
+        fileList.forEach {
+            val reader = FileReader(it)
+            val code =  reader.readText()
+            val ktFile = parser.parsePsiFile(code,it.name)
+        }
+        println(dirs)
+    }
+
+
 
     @Test
     fun testBasicFunction(){
@@ -41,17 +68,21 @@ open class GenTest {
 
     @Test
     fun testBasicClass(){
-        testGen("basic/Class.kt")
+        testGen("structed/Class.kt")
     }
 
     @Test
     fun testBasicInterface(){
-        testGen("basic/Interface.kt")
+        testGen("structed/Interface.kt")
+    }
+
+    @Test
+    fun testProperties(){
+        testGen("structed/Properties.kt")
     }
 
     @Test
     fun testBasicControlFlow(){
-        val q =  ControlFlow().hasPrefix(1)
         testGen("basic/ControlFlow.kt")
     }
 

@@ -6,7 +6,7 @@ import com.liam.gen.swift.CodeGen
 import com.liam.gen.swift.Handler
 import com.liam.gen.swift.Logger
 import com.liam.gen.swift.notSupport
-import com.liam.gen.swift.scope.FuncInfo
+import com.liam.gen.swift.per.FuncInfo
 import com.liam.gen.swift.scope.PsiResult
 import com.liam.gen.swift.scope.Scope
 import org.jetbrains.kotlin.psi.KtCallElement

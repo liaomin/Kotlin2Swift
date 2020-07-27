@@ -1,12 +1,17 @@
-package com.liam.test.basic
+package com.liam.test.structed
 
+/**
+ * https://kotlinlang.org/docs/reference/control-flow.html
+ * @author liaomin
+ * @date 6/28/20 4:48 下午
+ * @version 1.0
+ */
 
-open class TestSuperClassA(val dt:Float){
-
-}
+open class TestSuperClassA(val dt:Float)
 
 class TestClassB : TestSuperClassA {
     constructor(int: Int):super(1.0f)
+    constructor():this(1)
 }
 
 
@@ -38,9 +43,7 @@ class TestClass(var int:Int):TestSuperClassA(1.0f){
 }
 
 class TestClass2 private constructor(var int: Int){
-    inner class Inner{
-
-    }
+    inner class Inner
 }
 
 fun main2() {

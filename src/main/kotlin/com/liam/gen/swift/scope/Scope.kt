@@ -5,8 +5,9 @@ import com.alibaba.fastjson.serializer.PropertyFilter
 import com.intellij.psi.PsiElement
 import com.liam.gen.Statement
 import com.liam.gen.swift.Logger
+import com.liam.gen.swift.per.FuncInfo
+import com.liam.gen.swift.per.Modifier
 import java.util.*
-import java.util.concurrent.ConcurrentHashMap
 import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
 
@@ -20,13 +21,11 @@ data class PsiResult(val statement: Statement, val name:String?, val returnType:
 
 open class Scope(val parent: Scope? = null, val name:String? = null) {
 
-    val imports:List<Scope> = LinkedList()
-
     val typeScope:HashMap<String,Scope> = HashMap()
 
     val variableMap:HashMap<String,String?> = HashMap()
 
-    val functions:ConcurrentHashMap<String,ArrayList<FuncInfo>> = ConcurrentHashMap()
+    val functions:HashMap<String,ArrayList<FuncInfo>> = HashMap()
 
     val cache:HashMap<in PsiElement,PsiResult> by lazy {  HashMap<PsiElement,PsiResult>() }
 
@@ -44,9 +43,7 @@ open class Scope(val parent: Scope? = null, val name:String? = null) {
         functions.computeIfAbsent(funcInfo.name){java.util.ArrayList()}.add(funcInfo)
     }
 
-    fun getFunc(name: String):ArrayList<FuncInfo>{
-        return functions.computeIfAbsent(name){java.util.ArrayList()}
-    }
+    fun getFunc(name: String):ArrayList<FuncInfo>? = functions.get(name)
 
     open fun setVariable(variable:String?,type:String?) {
         if(variable != null){
@@ -55,7 +52,8 @@ open class Scope(val parent: Scope? = null, val name:String? = null) {
     }
 
     fun getFuncInfo(name: String,argTypes: List<FuncInfo.Args>): FuncInfo?{
-        for (info in getFunc(name)){
+        val infoList = getFunc(name)
+        if(infoList != null)for (info in infoList){
             if(info.isSameType(argTypes)){
                 return info
             }
@@ -63,12 +61,19 @@ open class Scope(val parent: Scope? = null, val name:String? = null) {
         if(parent != null){
             return parent?.getFuncInfo(name,argTypes)
         }
-        Logger.error("not find func info $name")
         return null
     }
 
     fun getFuncType(name: String,argTypes: List<FuncInfo.Args>):String?{
-        return getFuncInfo(name,argTypes)?.returnType ?: "Void"
+        val funcInfo = getFuncInfo(name,argTypes)
+        if(funcInfo == null){
+            val classScope =  getScope(name)
+            if(classScope != null){
+                return name
+            }
+            Logger.error("not find function $name in scope")
+        }
+        return funcInfo?.returnType ?: "Void"
     }
 
     open fun getType(variable:String,targetType:String? = null):String{
@@ -96,16 +101,22 @@ open class Scope(val parent: Scope? = null, val name:String? = null) {
         return scope
     }
 
-    open fun newClassScope(className:String): ClassScope {
+    fun newClassScope(className:String): ClassScope {
         val scope = ClassScope(this,className)
         typeScope[className] = scope
         return scope
     }
 
-    fun getClassScope(className: String):Scope? {
+    fun newFileScope(packageName:String,fileName:String): FileScope {
+        val scope = FileScope(this,packageName,fileName)
+        typeScope[scope.getAbsoluteName()] = scope
+        return scope
+    }
+
+    open fun getScope(className: String):Scope? {
         var scope =  typeScope[className]
         if(scope == null){
-            scope =  parent?.getClassScope(className)
+            scope =  parent?.getScope(className)
         }
         return scope
     }
@@ -137,12 +148,14 @@ open class Scope(val parent: Scope? = null, val name:String? = null) {
         val superClasses:LinkedList<String> by lazy { LinkedList<String>() }
         var isInterface:Boolean = false
 
-        fun superClassExistFunc(info: FuncInfo):Boolean{
+        fun shouldAddOverride(info: FuncInfo):Boolean{
             superClasses.forEach {
-                getClassScope(it)?.let {
+                getScope(it)?.let {
                     if(it is ClassScope && !it.isInterface){
-                        val info = it.getFuncInfo(info.name,info.args)
-                        if(info != null){
+                        val funcInfo = it.getFuncInfo(info.name,info.args)
+                        if(funcInfo != null && !info.modifierList.contains(Modifier.CONVENIENCE)){
+                            return true
+                        }else if(funcInfo == null && info.name.equals("init") && info.args.isEmpty()){
                             return true
                         }
                     }
@@ -151,4 +164,5 @@ open class Scope(val parent: Scope? = null, val name:String? = null) {
             return false
         }
     }
+
 }

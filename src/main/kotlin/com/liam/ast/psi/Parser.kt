@@ -31,8 +31,8 @@ open class Parser(val converter: Converter = Converter) {
         }
     })
 
-    fun parsePsiFile(code: String) =
-            PsiManager.getInstance(proj).findFile(LightVirtualFile("temp.kt", KotlinFileType.INSTANCE, code)) as KtFile
+    fun parsePsiFile(code: String,fileName:String? = null) =
+            PsiManager.getInstance(proj).findFile(LightVirtualFile(fileName?:"temp.kt", KotlinFileType.INSTANCE, code)) as KtFile
 
     data class ParseError(
             val file: KtFile,
