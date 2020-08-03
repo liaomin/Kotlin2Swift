@@ -4,8 +4,8 @@ import com.liam.gen.Statement
 import com.liam.gen.swift.CodeGen
 import com.liam.gen.swift.Handler
 import com.liam.gen.swift.notSupport
-import com.liam.gen.swift.scope.PsiResult
-import com.liam.gen.swift.scope.Scope
+import com.liam.gen.scope.PsiResult
+import com.liam.gen.scope.Scope
 import org.jetbrains.kotlin.psi.*
 
 open class ReturnExpression : Handler<KtReturnExpression>() {

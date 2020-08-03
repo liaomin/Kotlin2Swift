@@ -1,4 +1,4 @@
-package com.liam.gen.swift.per
+package com.liam.gen.per
 
 enum class Modifier(val value: String) {
     OVERRIDE("override"),

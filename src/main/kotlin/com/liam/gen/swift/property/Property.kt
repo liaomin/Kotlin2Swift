@@ -1,14 +1,38 @@
 package com.liam.gen.swift.property
 
 import com.liam.gen.Statement
+import com.liam.gen.per.PropertyInfo
+import com.liam.gen.scope.FileScope
 import com.liam.gen.swift.CodeGen
 import com.liam.gen.swift.Handler
-import com.liam.gen.swift.scope.Scope
+import com.liam.gen.scope.Scope
 import com.liam.gen.swift.TypeUtils
-import com.liam.gen.swift.scope.PsiResult
+import com.liam.gen.scope.PsiResult
 import org.jetbrains.kotlin.psi.KtProperty
 
 open class Property: Handler<KtProperty>() {
+
+    override fun perParserStep1(psiElement: KtProperty, scope: Scope) {
+        var name = psiElement.name!!
+        var type:String? = TypeUtils.getType(psiElement.typeReference,scope)
+        val propertyInfo = PropertyInfo(name,type)
+        scope.perCache[psiElement] = propertyInfo
+    }
+
+    override fun perParserStep2(psiElement: KtProperty, scope: Scope) {
+
+    }
+
+    fun preParser(v: KtProperty, scope: Scope){
+        var name = v.name!!
+        val rootScope = scope.getRootScope()
+        var type:String? = TypeUtils.getType(v.typeReference,scope)
+        val propertyInfo = PropertyInfo(name,type)
+        if(scope is FileScope){
+            propertyInfo.callName = rootScope.getGlobalName(name,scope.packageName)
+        }
+        scope.propertyMap[name] = PropertyInfo(name,type)
+    }
 
     override fun onGenCode(gen: CodeGen, v: KtProperty, scope: Scope, targetType: String?, expectType: String?, shouldReturn: Boolean): PsiResult {
         val statement = Statement()
@@ -23,7 +47,7 @@ open class Property: Handler<KtProperty>() {
         }
         var name = property.name!!
         statement.append("$name")
-        var type = TypeUtils.getType(property.typeReference)
+        var type = TypeUtils.getType(property.typeReference,scope)
 
         var exprStatement:Statement? = null
         property.delegateExpressionOrInitializer?.let {

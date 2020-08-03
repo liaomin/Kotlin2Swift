@@ -4,12 +4,12 @@ import com.intellij.psi.PsiWhiteSpace
 import com.liam.gen.Statement
 import com.liam.gen.swift.expr.Class
 import com.liam.gen.swift.expr.Expr
-import com.liam.gen.swift.expr.Func
-import com.liam.gen.swift.per.FileInfo
+import com.liam.gen.swift.func.Func
+import com.liam.gen.per.FileInfo
 import com.liam.gen.swift.property.Property
-import com.liam.gen.swift.scope.PsiResult
-import com.liam.gen.swift.scope.RootScope
-import com.liam.gen.swift.scope.Scope
+import com.liam.gen.scope.PsiResult
+import com.liam.gen.scope.RootScope
+import com.liam.gen.scope.Scope
 import com.liam.gen.swift.structed.File
 import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.psi.psiUtil.children
@@ -32,7 +32,7 @@ fun notSupport(message:String = ""):String{
 }
 
 
-class CodeGen{
+open class CodeGen{
 
     open fun genModifiers(modifierList: KtModifierList, target: KtElement, scope: Scope,statement: Statement){
         modifierList.node?.children().orEmpty().forEach {
@@ -69,7 +69,7 @@ class CodeGen{
         var type:String? = null
         v.extendsBound?.let {
             statement.append(":")
-            type = TypeUtils.getType(it)
+            type = TypeUtils.getType(it,scope)
             if(!containBasicType && TypeUtils.isBasicType(type)){
                 notSupport("basic type can't be here")
             }
@@ -78,32 +78,12 @@ class CodeGen{
         return PsiResult(statement,null,type)
     }
 
-    open fun genDeclaration(v:KtDeclaration, statement: Statement, scope: Scope, targetType:String?, expectType:String?, shouldReturn:Boolean):PsiResult{
-        return when(v){
-            is KtClassOrObject -> genClassOrObject(v,scope,targetType,expectType,shouldReturn)
-            is KtProperty -> genProperty(v,scope,targetType, expectType, shouldReturn)
-            is KtNamedFunction -> genNamedFunction(v, scope, targetType, expectType, shouldReturn)
-            else -> {
-                notSupport()
-                PsiResult.Null
-            }
-        }
-//        is KtEnumEntry -> convertEnumEntry(v)
-//        is KtClassOrObject -> convertStructured(v)
-//        is KtAnonymousInitializer -> convertInit(v)
-//        is KtNamedFunction -> convertFunc(v)
-//        is KtDestructuringDeclaration -> convertProperty(v)
-//        is KtProperty -> convertProperty(v)
-//        is KtTypeAlias -> convertTypeAlias(v)
-//        is KtSecondaryConstructor -> convertConstructor(v)
-//        else -> error("Unrecognized declaration type for $v")
-    }
 
     open fun genType(v: KtTypeProjection, scope: Scope) = v.typeReference?.let { genType(it,scope, it.modifierList) }
 
     open fun genType(v: KtTypeReference,  scope: Scope, modifierList: KtModifierList? = null):String?{
         if(modifierList != null) notSupport()
-        val type = TypeUtils.getType(v)
+        val type = TypeUtils.getType(v,scope)
         return type
     }
 
@@ -111,6 +91,10 @@ class CodeGen{
         val scope = RootScope()
         File.genFiles(this,files,scope)
         return scope
+    }
+
+    companion object : CodeGen(){
+
     }
 
 }

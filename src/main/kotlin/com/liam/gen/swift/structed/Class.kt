@@ -2,10 +2,11 @@ package com.liam.gen.swift.expr
 
 import com.liam.gen.Statement
 import com.liam.gen.swift.*
-import com.liam.gen.swift.per.FuncInfo
-import com.liam.gen.swift.per.Modifier
-import com.liam.gen.swift.scope.PsiResult
-import com.liam.gen.swift.scope.Scope
+import com.liam.gen.per.FuncInfo
+import com.liam.gen.per.Modifier
+import com.liam.gen.scope.ClassScope
+import com.liam.gen.scope.PsiResult
+import com.liam.gen.scope.Scope
 import com.liam.gen.swift.structed.Interface
 import com.liam.gen.swift.structed.Struct
 import org.jetbrains.kotlin.psi.*
@@ -25,7 +26,7 @@ open class Class : Struct<KtClass>() {
         tempStatement.append("init(")
         constructor.valueParameters.forEachIndexed { index, ktParameter ->
             val name =  ktParameter.name
-            val type = ktParameter.typeReference?.let { TypeUtils.getType(it) }
+            val type = ktParameter.typeReference?.let { TypeUtils.getType(it,scope) }
             val default = ktParameter.defaultValue?.let {
                 gen.genExpr(it ,scope, null, null, false).statement.toString()
             } ?: null
@@ -53,7 +54,7 @@ open class Class : Struct<KtClass>() {
         val funcInfo2 = FuncInfo("init", args, className)
         scope.getScope(className)?.let {
             it.addFunc(funcInfo2)
-            if(it is Scope.ClassScope && it.shouldAddOverride(funcInfo2)){
+            if(it is ClassScope && it.shouldAddOverride(funcInfo2)){
                 nodes.add(index,"override ")
             }
         }

@@ -1,16 +1,17 @@
 package com.liam.gen.swift
 
+import com.liam.gen.scope.Scope
 import org.jetbrains.kotlin.psi.*
 
 open class TypeUtils {
 
     val basicTypes = arrayOf("Int","Int64","Int8","Int16","UInt8","UInt16","UInt","UInt64","Character","Bool")
 
-    open fun getType(typeRef: KtTypeReference?):String?{
-        return getType(typeRef?.typeElement)
+    open fun getType(typeRef: KtTypeReference?,scope: Scope):String?{
+        return getType(typeRef?.typeElement,scope)
     }
 
-    open fun getType(type: KtTypeElement?):String?{
+    open fun getType(type: KtTypeElement?,scope: Scope):String?{
         type?.let {
             when(it){
                 is KtUserType -> {
@@ -22,12 +23,18 @@ open class TypeUtils {
                         "UByte" ->  return "UInt8"
                         "UShort" ->  return "UInt16"
                         "UInt" ->  return "UInt"
+                        "Int" ->  return "Int"
                         "Boolean" ->  return "Bool"
                         "Char" ->  return "Character"
-                        else -> return it.referencedName
+                        else -> {
+                            val type = it.text
+                            val realType = scope.getRealType(type)
+                            return realType
+//                            return it.referencedName
+                        }
                     }
                 }
-                is KtNullableType -> return getType(it.innerType)+"?"
+                is KtNullableType -> return getType(it.innerType,scope)+"?"
 //                is KtFunctionType -> {
 //                    //Block
 //                    Node.TypeRef.Func(

@@ -3,9 +3,9 @@ package com.liam.gen.swift.expr
 import com.liam.gen.Statement
 import com.liam.gen.swift.CodeGen
 import com.liam.gen.swift.Handler
-import com.liam.gen.swift.scope.Scope
+import com.liam.gen.scope.Scope
 import com.liam.gen.swift.oper.Oper
-import com.liam.gen.swift.scope.PsiResult
+import com.liam.gen.scope.PsiResult
 import org.jetbrains.kotlin.psi.KtBinaryExpression
 
 open class BinaryExpression : Handler<KtBinaryExpression>() {

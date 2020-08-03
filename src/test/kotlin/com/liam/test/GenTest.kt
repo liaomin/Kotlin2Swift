@@ -3,8 +3,9 @@ package com.liam.test
 
 import com.liam.ast.psi.Parser
 import com.liam.gen.swift.CodeGen
-import com.liam.gen.swift.per.FileInfo
-import com.liam.gen.swift.scope.Scope
+import com.liam.gen.per.FileInfo
+import com.liam.gen.scope.RootScope
+import com.liam.gen.scope.Scope
 import org.junit.BeforeClass
 import org.junit.Test;
 import java.io.File
@@ -13,7 +14,6 @@ import java.io.FileWriter
 import java.util.*
 
 open class GenTest {
-
 
     fun testGen(path: String){
         val outFile = File("/Users/liaomin/Documents/ioslearn/SwiftTemp/SwiftTemp/conver/${path.replace(".kt",".swift")}")
@@ -26,7 +26,7 @@ open class GenTest {
         val code =  reader.readText()
         val ktFile = Parser().parsePsiFile(code)
         val f = com.liam.gen.swift.structed.File()
-        val scope = Scope()
+        val scope = RootScope()
         val codeGen = CodeGen()
         val result = f.genCode(codeGen,ktFile,scope,null,null,false)
         val fw = FileWriter(outFile)
@@ -50,11 +50,38 @@ open class GenTest {
             val reader = FileReader(it)
             val code =  reader.readText()
             val ktFile = parser.parsePsiFile(code,it.name)
+            fileInfos.add(FileInfo(ktFile,it.name))
         }
-        println(dirs)
+        val codeGen = CodeGen()
+        codeGen.genFiles(fileInfos)
     }
 
+    fun addFiles(f:File,fileList:LinkedList<File>){
+        if(f.isDirectory){
+            f.listFiles().forEach{addFiles(it,fileList)}
+        }else if(f.name.endsWith(".kt")){
+            fileList.add(f)
+        }
+    }
 
+    @Test
+    fun testPerParse(){
+        val dir = File("./src/test/kotlin/${GenTest::class.java.`package`.name.replace(".","/")}")
+        val dirs = dir.listFiles {f -> f.isDirectory && f.name.startsWith("per")}
+        val fileList:LinkedList<File> = LinkedList()
+        dirs.forEach{ addFiles(it,fileList) }
+        val fileInfos:LinkedList<FileInfo> = LinkedList()
+        val parser = Parser()
+        fileList.forEach {
+            val reader = FileReader(it)
+            val code =  reader.readText()
+            val ktFile = parser.parsePsiFile(code,it.name)
+            fileInfos.add(FileInfo(ktFile,it.name))
+        }
+        val codeGen = CodeGen()
+        val scope = codeGen.genFiles(fileInfos)
+        println(scope)
+    }
 
     @Test
     fun testBasicFunction(){

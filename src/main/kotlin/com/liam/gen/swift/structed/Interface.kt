@@ -2,11 +2,9 @@ package com.liam.gen.swift.structed
 
 import com.liam.gen.Statement
 import com.liam.gen.swift.CodeGen
-import com.liam.gen.swift.Handler
-import com.liam.gen.swift.scope.PsiResult
-import com.liam.gen.swift.scope.Scope
+import com.liam.gen.scope.PsiResult
+import com.liam.gen.scope.Scope
 import org.jetbrains.kotlin.psi.*
-import java.util.*
 
 open class Interface : Struct<KtClass>() {
 

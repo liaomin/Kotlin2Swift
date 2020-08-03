@@ -1,6 +1,6 @@
 package com.liam.gen
 
-import com.liam.gen.swift.scope.PsiResult
+import com.liam.gen.scope.PsiResult
 import java.lang.StringBuilder
 import java.util.*
 import kotlin.collections.ArrayList

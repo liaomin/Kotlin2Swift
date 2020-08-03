@@ -2,7 +2,7 @@ package com.liam.gen.swift.oper
 
 import com.liam.gen.Statement
 import com.liam.gen.swift.CodeGen
-import com.liam.gen.swift.scope.Scope
+import com.liam.gen.scope.Scope
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtOperationReferenceExpression
 

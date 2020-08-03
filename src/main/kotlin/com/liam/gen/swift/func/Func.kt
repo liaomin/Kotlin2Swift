@@ -1,28 +1,45 @@
-package com.liam.gen.swift.expr
+package com.liam.gen.swift.func
 
 import com.liam.gen.Statement
 import com.liam.gen.swift.*
-import com.liam.gen.swift.per.FuncInfo
-import com.liam.gen.swift.per.Modifier
-import com.liam.gen.swift.scope.PsiResult
-import com.liam.gen.swift.scope.Scope
+import com.liam.gen.per.FuncInfo
+import com.liam.gen.per.Modifier
+import com.liam.gen.scope.ClassScope
+import com.liam.gen.scope.FileScope
+import com.liam.gen.scope.PsiResult
+import com.liam.gen.scope.Scope
 import org.jetbrains.kotlin.psi.*
 
 open class Func : Handler<KtNamedFunction>() {
 
+    override fun perParserStep1(psiElement: KtNamedFunction, scope: Scope) {
+        val funcInfo = getFuncInfo(CodeGen,psiElement,scope,null,null,false)
+        scope.perCache[psiElement] = funcInfo
+    }
+
+    override fun perParserStep2(psiElement: KtNamedFunction, scope: Scope) {
+
+    }
+
     fun getFuncInfo(gen: CodeGen, func: KtNamedFunction, scope: Scope, targetType: String?, expectType: String?, shouldReturn: Boolean): FuncInfo {
-        val funcName = func.name!!
+        var funcName = func.name!!
+        var callName = funcName
+        if(scope is FileScope){
+            callName = scope.getRootScope().getGlobalName(funcName,scope.packageName)
+        }
         val args = ArrayList<FuncInfo.Args>()
         func.valueParameters.forEach {
             val name =  it.name
-            val type = it.typeReference?.let { TypeUtils.getType(it) }
+            val type = it.typeReference?.let { TypeUtils.getType(it,scope) }
             val default = it.defaultValue?.let {
                 gen.genExpr(it ,scope, targetType, expectType, shouldReturn).statement.toString()
             } ?: null
             args.add(FuncInfo.Args(name!!,type!!,default))
         }
-        val returnType = func.typeReference?.let { TypeUtils.getType(it) }
-        return FuncInfo(funcName, args, returnType);
+        val returnType = func.typeReference?.let { TypeUtils.getType(it,scope) }
+        val funcInfo = FuncInfo(funcName, args, returnType)
+        funcInfo.callName = callName
+        return funcInfo
     }
 
     override fun onGenCode(gen: CodeGen, v: KtNamedFunction, scope: Scope, targetType: String?, expectType: String?, shouldReturn: Boolean): PsiResult {
@@ -45,7 +62,7 @@ open class Func : Handler<KtNamedFunction>() {
         val funcInfo = getFuncInfo(gen,func,scope, targetType, expectType, shouldReturn)
         scope.addFunc(funcInfo)
         statement.nextLine()
-        if(scope is Scope.ClassScope){
+        if(scope is ClassScope){
             if(scope.shouldAddOverride(funcInfo)){
                 statement.append("override ")
                 funcInfo.modifierList.add(Modifier.OVERRIDE)

@@ -1,13 +1,15 @@
-package com.liam.gen.swift.per
+package com.liam.gen.per
 
 import java.util.*
 
+data class TypeParameter(val name: String,val parent: String? = null)
+
 data class FuncInfo(val name:String, val args:List<Args>, val returnType:String? = null){
+    var callName = name
     //泛型
     val typeParameters:LinkedList<TypeParameter>  by lazy { LinkedList<TypeParameter>() }
     val modifierList:LinkedList<Modifier>  by lazy { LinkedList<Modifier>() }
     data class Args(val name: String?, val type: String?, val default: String? = null)
-    data class TypeParameter(val name: String,val parent: String? = null)
     fun isSameType(argTypes: List<Args>):Boolean{
         val argsSize = args.size
         val argTypeSize = argTypes.size

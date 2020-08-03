@@ -4,11 +4,10 @@ import com.intellij.psi.PsiElement
 import com.liam.gen.Statement
 import com.liam.gen.swift.CodeGen
 import com.liam.gen.swift.Handler
-import com.liam.gen.swift.scope.Scope
+import com.liam.gen.scope.Scope
 import org.jetbrains.kotlin.psi.*
 
 abstract class Struct<T:PsiElement> : Handler<T>() {
-
 
     fun genDeclarations(gen: CodeGen,scope: Scope,declarations:List<KtDeclaration>): Statement {
         val statement = Statement()

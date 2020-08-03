@@ -2,7 +2,7 @@ package com.liam.gen.swift.expr
 
 import com.liam.gen.Statement
 import com.liam.gen.swift.CodeGen
-import com.liam.gen.swift.scope.Scope
+import com.liam.gen.scope.Scope
 import com.liam.gen.swift.notSupport
 import org.jetbrains.kotlin.psi.*
 

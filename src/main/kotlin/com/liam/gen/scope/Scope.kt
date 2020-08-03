@@ -1,13 +1,13 @@
-package com.liam.gen.swift.scope
+package com.liam.gen.scope
 
 import com.alibaba.fastjson.JSON
 import com.alibaba.fastjson.serializer.PropertyFilter
+import com.alibaba.fastjson.serializer.SerializerFeature
 import com.intellij.psi.PsiElement
 import com.liam.gen.Statement
 import com.liam.gen.swift.Logger
-import com.liam.gen.swift.per.FuncInfo
-import com.liam.gen.swift.per.Modifier
-import java.util.*
+import com.liam.gen.per.FuncInfo
+import com.liam.gen.per.PropertyInfo
 import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
 
@@ -19,15 +19,22 @@ data class PsiResult(val statement: Statement, val name:String?, val returnType:
 }
 
 
-open class Scope(val parent: Scope? = null, val name:String? = null) {
+open class Scope(val parent: Scope? = null, val name:String, val packageName: String) {
+
+    val scopeName:String = this::class.java.name
 
     val typeScope:HashMap<String,Scope> = HashMap()
 
+    @Deprecated(" use propertyMap")
     val variableMap:HashMap<String,String?> = HashMap()
+
+    val propertyMap:HashMap<String,PropertyInfo> = HashMap()
 
     val functions:HashMap<String,ArrayList<FuncInfo>> = HashMap()
 
-    val cache:HashMap<in PsiElement,PsiResult> by lazy {  HashMap<PsiElement,PsiResult>() }
+    val cache:HashMap<PsiElement,PsiResult> by lazy {  HashMap<PsiElement,PsiResult>() }
+
+    val perCache:HashMap<PsiElement,Any> by lazy {  HashMap<PsiElement,Any>() }
 
     fun getCachedResult(key:PsiElement):PsiResult? = parent?.getCachedResult(key) ?: cache.get(key)
 
@@ -76,6 +83,51 @@ open class Scope(val parent: Scope? = null, val name:String? = null) {
         return funcInfo?.returnType ?: "Void"
     }
 
+    open fun finRealType(type: String):String{
+        val cache = typeScope[type]
+        if(cache != null && cache is ClassScope){
+            return cache.callName
+        }
+        return parent?.finRealType(type) ?: type
+    }
+
+    fun getRealType(type:String):String{
+        if(type.contains(".")){
+            //absolute ref
+            val rootScope = getRootScope()
+            val paths = type.split(".")
+            for (i in paths.size - 1 downTo 0){
+                val pre = paths.subList(0,i)
+                val pro = paths.subList(i,paths.size)
+                val `package` = pre.joinToString(".")
+                val packageScope:PackageScope?= rootScope.getPackageScopeOrNull(`package`)
+                if(packageScope != null){
+                    var scope:Scope? = packageScope
+                    pro.forEachIndexed { index, s ->
+                        if(scope != null){
+                            var temp = scope?.typeScope?.get(s)
+                            if(scope is PackageScope){
+                                temp = (scope as PackageScope)?.findScope(s)
+                            }
+                            if(temp != null && temp is Scope){
+                                scope = temp
+                                if(index == pro.size - 1 && temp is ClassScope){
+                                    return temp.callName
+                                }
+                            }else{
+                                return@forEachIndexed
+                            }
+                        }else{
+                            return@forEachIndexed
+                        }
+                    }
+                }
+            }
+        }
+
+        return type
+    }
+
     open fun getType(variable:String,targetType:String? = null):String{
         var cacheType = variableMap[variable] ?: parent?.getType(variable)
         if(cacheType == null){
@@ -97,12 +149,12 @@ open class Scope(val parent: Scope? = null, val name:String? = null) {
     }
 
     open fun newScope(): Scope {
-        val scope = Scope(this)
+        val scope = Scope(this,name,packageName)
         return scope
     }
 
     fun newClassScope(className:String): ClassScope {
-        val scope = ClassScope(this,className)
+        val scope = ClassScope(this,className,packageName)
         typeScope[className] = scope
         return scope
     }
@@ -136,33 +188,33 @@ open class Scope(val parent: Scope? = null, val name:String? = null) {
         return className
     }
 
-    override fun toString(): String {
-        return JSON.toJSONString(this,object :PropertyFilter{
-            override fun apply(`object`: Any?, name: String?, value: Any?): Boolean {
-                return !name.equals("cache")
-            }
-        })
+    fun getRootScope():RootScope{
+        if(parent != null){
+            return parent.getRootScope()
+        }
+        if(this is RootScope){
+            return this
+        }
+        error("")
     }
 
-    class ClassScope(parent: Scope? = null, name:String? = null) : Scope(parent,name){
-        val superClasses:LinkedList<String> by lazy { LinkedList<String>() }
-        var isInterface:Boolean = false
-
-        fun shouldAddOverride(info: FuncInfo):Boolean{
-            superClasses.forEach {
-                getScope(it)?.let {
-                    if(it is ClassScope && !it.isInterface){
-                        val funcInfo = it.getFuncInfo(info.name,info.args)
-                        if(funcInfo != null && !info.modifierList.contains(Modifier.CONVENIENCE)){
-                            return true
-                        }else if(funcInfo == null && info.name.equals("init") && info.args.isEmpty()){
-                            return true
-                        }
-                    }
-                }
+    fun isModuleScope():Boolean{
+        return when(this){
+            is RootScope -> return true
+            is PackageScope -> return true
+            is FileScope -> return true
+            else -> {
+                return false
             }
-            return false
         }
+    }
+
+    override fun toString(): String {
+        return JSON.toJSONString(this,object :PropertyFilter{
+            override fun apply(`object`: Any?, name: String, value: Any?): Boolean {
+                return !name.toLowerCase().contains("cache")
+            }
+        },SerializerFeature.PrettyFormat)
     }
 
 }
