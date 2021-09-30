@@ -15,6 +15,14 @@ import kotlin.collections.ArrayList
 
 open class Class : Struct<KtClass>() {
 
+    override fun perParserStep1(psiElement: KtClass, scope: Scope) {
+
+    }
+
+    override fun perParserStep2(psiElement: KtClass, scope: Scope) {
+
+    }
+
     fun <T:KtConstructor<T>> genConstructor(gen: CodeGen,constructor:KtConstructor<T>,scope: Scope,statement: Statement,className: String,onBefore:(s:Statement)->Unit,onAfter:(s:Statement)->Unit,isConvenience:()->Boolean):Statement{
         val args = ArrayList<FuncInfo.Args>()
         val tempStatement = statement.newStatement()
@@ -46,7 +54,7 @@ open class Class : Struct<KtClass>() {
                 }
                 statement.nextLine()
             }
-
+ 
             args.add(FuncInfo.Args(name!!,type!!,default))
         }
         val funcInfo = FuncInfo(className, args, className)

@@ -47,7 +47,6 @@ open class File : Struct<KtFile>() {
                     packageScope.getFileScope(packageName).imports.add(importScope)
                 }
             }
-
             val packageScope = scope.getPackageScope(packageName)
             val fileScope = packageScope.getFileScope(fileName)
             perParserDeclarations(psiElement.declarations,fileScope,1)

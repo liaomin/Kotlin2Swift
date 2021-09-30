@@ -14,8 +14,6 @@ class TestClassB : TestSuperClassA {
     constructor():this(1)
 }
 
-
-
 class TestClass(var int:Int):TestSuperClassA(1.0f){
 
     val q = 1.2
@@ -33,7 +31,6 @@ class TestClass(var int:Int):TestSuperClassA(1.0f){
     init {
         this.int = 2
     }
-
 
     val t = 23
 
